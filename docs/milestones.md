@@ -6,7 +6,8 @@ Meta interna de equipo: **21 de agosto de 2026**. Entrega oficial 4Geeks: **28 d
 **Fecha límite: 5 de agosto**
 
 - Documentación base del proyecto (este `/docs`).
-- Resolver los pendientes de `decisiones.md`: recurso de agenda, matriz de permisos por rol, roles de los integrantes del equipo.
+- Resolver los pendientes de `decisiones.md`: recurso de agenda, matriz de permisos por rol, composición de paquetes, granularidad de Google Calendar.
+- Pendiente de cerrar: roles de los integrantes del equipo (quién programa qué).
 - Modelo de datos inicial.
 
 ## M2 — MVP
@@ -14,8 +15,9 @@ Meta interna de equipo: **21 de agosto de 2026**. Entrega oficial 4Geeks: **28 d
 
 - Login con 3 roles (Administrador, Asistente, Especialista).
 - Gestión de Pacientes + expediente básico.
-- Catálogo de servicios.
-- Agenda con integración real a Google Calendar.
+- Catálogo de servicios y paquetes (alta de servicios, armado de paquetes predefinidos).
+- Espacios de trabajo (configuración) — requerido por Agenda para evitar choques de recursos.
+- Agenda con integración real a Google Calendar (un solo calendario compartido, especialista + espacio por cita).
 - Ventas: pago completo y abonos.
 - Pagos a plazos de paquetes (prioridad baja — última feature del milestone).
 - Dashboard básico.
@@ -24,9 +26,9 @@ Meta interna de equipo: **21 de agosto de 2026**. Entrega oficial 4Geeks: **28 d
 **Fecha límite: lunes 17 de agosto**
 
 - Paquetes de sesiones + comisión prorrateada por sesión aplicada.
-- Consentimientos informados con firma digital.
+- Consentimientos informados con firma digital (texto genérico).
 - Galería de fotos "Antes y Después".
-- Inventario con descuento automático por receta de servicio.
+- Inventario con descuento automático por receta fija de servicio (unidades enteras).
 
 ## M4 — Nice to have
 **Fecha límite: viernes 21 de agosto (meta interna)**
