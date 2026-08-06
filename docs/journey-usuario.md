@@ -5,12 +5,12 @@
 ## Fase 1: El Primer Contacto y la Reserva Inteligente
 
 - **La Paciente:** Escribe por WhatsApp pidiendo una cita (ej. para un Tratamiento Facial o Sesión Reductiva).
-- **La Asistente:** Entra al sistema, abre la Agenda (Google Calendar) y selecciona un horario libre.
+- **La Asistente:** Entra al sistema, abre la Agenda (calendario único de la clínica, sincronizado con Google Calendar) y selecciona un horario libre.
 - **El Sistema:** Muestra una barra de Búsqueda Inteligente (por teléfono — ver decisiones.md).
   - **Camino A (Paciente Nueva):** La asistente no la encuentra en el buscador. El sistema le pide los datos básicos (Nombre, Teléfono, Servicio deseado) y la guarda como un nuevo registro.
   - **Camino B (Paciente Recurrente - Servicio Nuevo):** La asistente escribe el teléfono, el sistema la reconoce y autocompleta sus datos al instante. Selecciona el nuevo servicio y guarda.
-  - **Camino C (Paciente Recurrente - Paquete Activo):** El sistema detecta que la paciente tiene un paquete comprado (ej. Reductivo 10 sesiones). La asistente hace clic en agendar siguiente sesión. El sistema enlaza la cita y la marca como "Sesión 2 de 10", sin generar un cobro duplicado.
-- **El Sistema:** Bloquea el horario en Google Calendar para evitar choques de agenda.
+  - **Camino C (Paciente Recurrente - Paquete Activo):** El sistema detecta que la paciente tiene un paquete comprado (ej. Reductivo 10 sesiones). Los paquetes pueden combinar sesiones de servicios distintos entre sí, no necesariamente del mismo tipo. La asistente hace clic en agendar siguiente sesión. El sistema enlaza la cita y la marca como "Sesión 2 de 10", sin generar un cobro duplicado.
+- **El Sistema:** Requiere una especialista y un espacio de trabajo disponibles simultáneamente, y bloquea el horario en Google Calendar para evitar choques de agenda.
 
 ## Fase 2: El Recordatorio Automático (El día anterior)
 
@@ -25,7 +25,7 @@
 - **La Asistente:**
   - Si es Nueva: Va a "Gestión de Pacientes" y crea su Ficha Clínica médica completa (alergias, edad, tipo de piel).
   - Si es Recurrente: Se salta este paso (su ficha ya existe).
-- **Consentimiento Informado (firma digital — ver decisiones.md):**
+- **Consentimiento Informado (firma digital, texto genérico único para todos los tratamientos — ver decisiones.md):**
   - Si es un servicio nuevo o la 1ra sesión de un paquete, la asistente genera el consentimiento. La paciente lo firma digitalmente en una Tablet.
   - Si es la sesión 2 de un paquete activo, el sistema detecta que ya firmó antes y se salta este paso.
 - **La Especialista:** Desde su Tablet/PC revisa el historial, verifica la firma, hace pasar a la paciente y le toma la Foto del "Antes", cargándola directo a la Galería de la paciente.
@@ -33,7 +33,7 @@
 ## Fase 4: El Tratamiento y el Control de Inventario
 
 - **La Especialista:** Realiza el tratamiento. Al terminar, toma la Foto del "Después" y la sube al historial para dejar evidencia de la evolución médica.
-- **El Sistema:** Descuenta automáticamente los insumos del inventario según la receta configurada para ese servicio (ver decisiones.md).
+- **El Sistema:** Descuenta automáticamente los insumos del inventario (unidades enteras, cantidad fija) según la receta configurada para ese servicio (ver decisiones.md).
 
 ## Fase 5: El Cobro y la Fidelización
 
@@ -54,13 +54,13 @@
 # Arquitectura de Vistas (Pantallas)
 
 ## 1. Vista de Login (Autenticación)
-Formulario de acceso con correo y contraseña. Redirige según el rol: Administrador (Dueña), Asistente o Especialista (3 roles — ver decisiones.md).
+Formulario de acceso con correo y contraseña. Redirige según el rol: Administrador (Dueña), Asistente o Especialista — 3 roles, personas distintas (ver decisiones.md).
 
 ## 2. Vista de Dashboard (Panel Principal)
-Resumen general del día: gráficos de ingresos, servicios más vendidos, citas pendientes de hoy y cálculo mensual de comisiones.
+Resumen general del día: gráficos de ingresos, servicios más vendidos, citas pendientes de hoy y cálculo mensual de comisiones. Alcance visible según rol (ver matriz de permisos en decisiones.md).
 
 ## 3. Vista de Agenda y Citas (Calendario)
-Calendario principal integrado con Google Calendar (integración real, no simulada). Búsqueda Inteligente de pacientes por teléfono para agendar (servicios únicos o continuación de un Paquete) y botón rápido para enviar recordatorios por WhatsApp.
+Calendario principal integrado con Google Calendar — un solo calendario compartido de la clínica, los eventos se etiquetan con la especialista y el espacio de trabajo asignados. Cada cita requiere una especialista y un espacio disponibles simultáneamente. Búsqueda Inteligente de pacientes por teléfono para agendar (servicios únicos, paquetes predefinidos, o continuación de un paquete activo) y botón rápido para enviar recordatorios por WhatsApp. Cancelaciones/reprogramaciones no generan penalización ni cobro.
 
 ## 4. Vista de Pacientes e Historial Clínico Exhaustivo
 Lista de todos los pacientes. Al hacer clic en uno, se abre su Expediente Médico Completo:
@@ -75,7 +75,12 @@ Lista de todos los pacientes. Al hacer clic en uno, se abre su Expediente Médic
 La caja registradora: pagos completos o abonos, actualización automática de deudas, y asiento de comisiones de las especialistas.
 
 ## 6. Vista de Inventario y Gastos
-Control de stock y caja chica: descuento automático de insumos por receta de servicio, y registro de gastos fijos del local.
+Control de stock (unidades enteras) y caja chica: descuento automático de insumos por receta fija de servicio, y registro de gastos fijos del local.
 
-## 7. Vista de Catálogo de Servicios (Configuración)
-Panel administrativo — CRUD de tratamientos: precio, duración y % de comisión por servicio.
+## 7. Vista de Catálogo de Servicios y Paquetes (Configuración)
+Panel administrativo.
+- **Servicios:** Admin o Asistente puede dar de alta un nuevo servicio (nombre, precio, duración, % de comisión). Editar o eliminar un servicio existente queda reservado a Admin.
+- **Paquetes:** Admin o Asistente arma un paquete seleccionando uno o varios servicios del catálogo (pueden ser de distintos tipos) más el número de sesiones de cada uno, y define el precio total del combo. Queda disponible para asignarse a una paciente desde Ventas o desde la Agenda.
+
+## 8. Vista de Espacios de Trabajo (Configuración)
+Panel administrativo — CRUD de espacios físicos de la clínica (salas, camas, estaciones) donde se atienden los tratamientos. Cada cita en la Agenda debe tener asignado un espacio disponible además de la especialista, para evitar choques de recursos físicos. Solo Admin administra este catálogo.

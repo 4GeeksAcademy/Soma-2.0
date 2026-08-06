@@ -2,26 +2,48 @@
 
 Registro de decisiones tomadas sobre el documento original de journey del usuario, y de lo que sigue abierto. Este archivo manda sobre `journey-usuario.md` en caso de conflicto.
 
-Última actualización: 2026-08-05.
+Última actualización: 2026-08-05 (sesión de equipo).
 
 ## Resuelto
 
 | Tema | Decisión |
 |---|---|
-| Roles del sistema | 3 roles con permisos y vistas distintas: **Administrador** (Dueña), **Asistente**, **Especialista** |
+| Roles del sistema | 3 roles con permisos y vistas distintas: **Administrador** (Dueña), **Asistente**, **Especialista** — son personas distintas |
 | Identificador de búsqueda de pacientes | **Teléfono** (no nombre — evita ambigüedad por duplicados/typos) |
-| Modelo de "Paquete" | Es una entidad propia: conjunto de sesiones vinculado a paciente + servicio (total de sesiones, sesiones usadas, forma de pago, estado) |
+| Modelo de "Paquete" | Conjunto de sesiones vinculado a un paciente. Puede combinar sesiones de **servicios distintos entre sí** (no necesariamente del mismo tipo repetido) |
+| Composición de paquetes | **Predefinidos en el Catálogo** (no se arman libremente al momento de la venta) |
+| Quién crea Paquetes | Admin o Asistente, desde Catálogo de Servicios y Paquetes |
+| Quién crea Servicios nuevos | Admin o Asistente puede **crear**. Editar/eliminar un servicio existente queda reservado a Admin |
 | Comisión sobre paquetes | Se **prorratea por sesión aplicada**, no se paga completa al vender el paquete |
 | Pagos a plazos de paquetes | Entra al MVP, pero como feature de **baja prioridad** — de las últimas en construirse dentro de ese milestone |
-| Consentimiento informado | **Firma digital** (canvas en tablet). Se descarta la variante de firma en papel/escaneo |
-| Descuento de insumos | **Automático**, vía receta de insumos configurada por servicio contratado (no descuento manual sesión por sesión) |
-| Integración de calendario | **Google Calendar real** (OAuth2 + API), confirmado. No se construye un calendario interno temporal para después migrar — se hace real desde el MVP (Milestone 2), para no duplicar trabajo |
+| Consentimiento informado | **Firma digital** (canvas en tablet), texto **genérico único** para todos los tratamientos |
+| Cancelaciones / reprogramaciones | **Sin penalización** — solo se reprograma, no se cobra nada |
+| Descuento de insumos | **Automático**, vía receta fija de insumos por servicio. Se miden en **unidades enteras** (no ml), cantidad siempre fija (sin ajuste manual) |
+| Recurso de agenda | La clínica tiene **varias especialistas y varios espacios de trabajo**. Una cita requiere especialista + espacio disponibles simultáneamente. Se agrega **Espacio de Trabajo** como vista/entidad de configuración nueva |
+| Integración de calendario | **Google Calendar real** (OAuth2 + API), confirmado. **Un solo calendario compartido de la clínica** (no uno por especialista) — eventos etiquetados con especialista y espacio. Se hace real desde el MVP (Milestone 2), no se construye un calendario interno temporal |
 | Estructura de repositorio | Monorepo: frontend y backend en el mismo repo |
+| Roles de los integrantes del equipo | Asignación por módulo (ownership vertical) — ver [`equipo.md`](equipo.md) |
 
-## Pendiente — a resolver en la sesión de equipo de hoy (2026-08-05)
+## Matriz de permisos por rol (confirmada)
 
-- **Recurso de agenda:** ¿la clínica maneja **una sola agenda compartida**, o **una agenda por especialista/sala**? Esto define cómo se modela la integración con Google Calendar (¿un calendario de Google por especialista o uno solo?). **Bloqueante para diseñar el módulo de Agenda en el Milestone 2.**
-- **Consentimiento genérico vs. por tratamiento:** ¿un solo texto de consentimiento sirve para todos los servicios, o cada tratamiento (láser, peeling, facial, etc.) necesita su propio texto de riesgos? Queda como *Requerimiento pendiente* — se resuelve justo antes de construir esa feature específica, no bloquea el arranque del proyecto.
-- **Cancelaciones / no-shows:** si una paciente con paquete activo no se presenta a su cita, ¿la sesión se descuenta del paquete igual, o se reagenda sin penalización? *Por definir* antes de construir esa lógica.
-- **Matriz exacta de permisos por rol:** qué puede ver y hacer cada uno de los 3 roles (Administrador / Asistente / Especialista) en cada vista. Pendiente hasta que el equipo lo defina en la sesión de trabajo de hoy.
-- **Roles de los integrantes del equipo** (quién programa qué, no confundir con los roles del sistema): pendiente de asignar en la sesión de trabajo de hoy.
+| Módulo | Admin | Asistente | Especialista |
+|---|---|---|---|
+| Dashboard completo (ingresos, todas las comisiones) | ✅ | ❌ | ❌ |
+| Dashboard propio (sus sesiones/comisiones del día) | — | — | ✅ solo lo suyo |
+| Agenda (crear/editar citas) | ✅ | ✅ | Ver la suya, puede reagendar |
+| Pacientes: alta y datos básicos | ✅ | ✅ | Solo consulta |
+| Expediente clínico (anamnesis, bitácora, fotos) | Ver | Ver / captura datos iniciales | Crear/editar — es quien atiende |
+| Consentimientos | ✅ generar/verificar | ✅ generar | ✅ verificar firma |
+| Ventas y cobros | ✅ | ✅ | ❌ sin acceso |
+| Inventario (ver stock) | ✅ editar | ✅ editar | Descuento automático, sin gestión |
+| Catálogo → Servicios: crear nuevo | ✅ | ✅ | ❌ |
+| Catálogo → Servicios: editar/eliminar existente | ✅ | ❌ | ❌ |
+| Catálogo → Paquetes (CRUD completo) | ✅ | ✅ | ❌ |
+| Espacios de trabajo (CRUD) | ✅ | ❌ | ❌ |
+| Crear usuarios (Asistente/Especialista) | ✅ | ❌ | ❌ |
+| Reporte de comisiones de todas las especialistas | ✅ | ❌ | ❌ (solo ve las propias) |
+| Cierre de caja | ✅ cierra | Puede registrar el conteo | ❌ |
+
+## Pendiente
+
+Ninguno bloqueante — planeación cerrada. Cualquier ambigüedad nueva que surja durante el desarrollo se agrega a este archivo conforme aparezca.

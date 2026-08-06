@@ -10,13 +10,14 @@
 | Base de datos | PostgreSQL |
 | Autenticación | JWT |
 | Estructura de repo | Monorepo — `/frontend` y `/backend` en el mismo repo (`La-Churrer-a`) |
-| Calendario | Integración real con Google Calendar (OAuth2 + Google Calendar API). No se construye un calendario interno intermedio. |
-| Firma de consentimientos | Firma digital (canvas), no papel/escaneo |
-| Inventario | Descuento automático por receta de insumos configurada por servicio |
+| Calendario | Google Calendar real (OAuth2 + Google Calendar API) — **un solo calendario compartido de la clínica**, no uno por especialista. Eventos etiquetados con especialista y espacio de trabajo asignados |
+| Recursos de agenda | Cada cita requiere **especialista + espacio de trabajo** disponibles simultáneamente (varias especialistas, varios espacios) |
+| Firma de consentimientos | Firma digital (canvas), texto genérico único para todos los tratamientos |
+| Inventario | Descuento automático por receta fija de insumos por servicio. Unidades enteras (no ml/volumen) |
 
 ## Roles del sistema
 
-Administrador (Dueña), Asistente, Especialista — 3 roles con vistas y permisos distintos. Matriz exacta de permisos: **pendiente** (ver `decisiones.md`).
+Administrador (Dueña), Asistente, Especialista — 3 roles con vistas y permisos distintos. Matriz completa de permisos: ver `decisiones.md`.
 
 ## Pendiente de definir
 
