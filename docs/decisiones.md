@@ -22,6 +22,7 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 | Recurso de agenda | La clínica tiene **varias especialistas y varios espacios de trabajo**. Una cita requiere especialista + espacio disponibles simultáneamente. Se agrega **Espacio de Trabajo** como vista/entidad de configuración nueva |
 | Integración de calendario | **Google Calendar real** (OAuth2 + API), confirmado. **Un solo calendario compartido de la clínica** (no uno por especialista) — eventos etiquetados con especialista y espacio. Se hace real desde el MVP (Milestone 2), no se construye un calendario interno temporal |
 | Estructura de repositorio | Monorepo: frontend y backend en el mismo repo |
+| Roles de los integrantes del equipo | Asignación por módulo (ownership vertical) — ver [`equipo.md`](equipo.md) |
 
 ## Matriz de permisos por rol (confirmada)
 
@@ -45,4 +46,4 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 
 ## Pendiente
 
-- **Roles de los integrantes del equipo** (quién programa qué, no confundir con los roles del sistema): a confirmar con el equipo — no es bloqueante para arrancar M1/M2, pero hay que cerrarlo antes de repartir issues.
+Ninguno bloqueante — planeación cerrada. Cualquier ambigüedad nueva que surja durante el desarrollo se agrega a este archivo conforme aparezca.
