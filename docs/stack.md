@@ -15,6 +15,7 @@
 | Recursos de agenda | Cada cita requiere **especialista + espacio de trabajo** disponibles simultáneamente (varias especialistas, varios espacios) |
 | Firma de consentimientos | Firma digital (canvas), texto genérico único para todos los tratamientos |
 | Inventario | Descuento automático por receta fija de insumos por servicio. Unidades enteras (no ml/volumen) |
+| Envío de email | **SMTP de Gmail (app password)** — simple para desarrollo, sin alta en servicio nuevo. Suficiente para el MVP del bootcamp; se puede migrar a un servicio transaccional (Resend/SendGrid) si esto llega a producción real |
 
 ## Roles del sistema
 
@@ -24,4 +25,3 @@ Administrador (Dueña), Asistente, Especialista — 3 roles con vistas y permiso
 
 - **Almacenamiento de fotos y firmas** (antes/después, firma digital de consentimientos): no se ha confirmado proveedor. Sugerencia a evaluar: Cloudinary (free tier) — evita montar un bucket S3 desde cero. **No confirmado por el equipo todavía.**
 - **Librería de calendario en frontend** para renderizar la vista de Agenda sincronizada con Google Calendar (ej. `react-big-calendar` o similar) — a decidir cuando se diseñe el módulo de Agenda.
-- **Proveedor de envío de email** (requerido para el restablecimiento de contraseña, issue #27): opciones a evaluar — SMTP de Gmail (app password, más simple para desarrollo, sin alta en un servicio nuevo) vs. un servicio transaccional tipo Resend o SendGrid (mejor entregabilidad, más apropiado si esto llega a producción real). **No confirmado por el equipo todavía.**

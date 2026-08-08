@@ -8,10 +8,12 @@ from flask_swagger import swagger
 from flask_jwt_extended import JWTManager
 from api.utils import APIException, generate_sitemap
 from api.models import db
+from api.extensions import mail
 from api.routes import api
 from api.auth import auth
 from api.espacios import espacios
 from api.citas import citas
+from api.usuarios import usuarios
 from api.admin import setup_admin
 from api.commands import setup_commands
 
@@ -37,9 +39,19 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
+
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', os.environ.get('MAIL_USERNAME'))
+app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+
 MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
 JWTManager(app)
+mail.init_app(app)
 
 # add the admin
 setup_admin(app)
@@ -52,6 +64,7 @@ app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(auth)
 app.register_blueprint(espacios)
 app.register_blueprint(citas)
+app.register_blueprint(usuarios)
 
 # Handle/serialize errors like a JSON object
 
