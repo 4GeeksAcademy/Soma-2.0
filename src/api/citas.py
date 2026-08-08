@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 
+from api import google_calendar
 from api.decorators import rol_requerido
 from api.models import Cita, EstadoCita, db
 
@@ -90,6 +91,10 @@ def crear_cita():
     )
     db.session.add(cita)
     db.session.commit()
+
+    cita.google_event_id = google_calendar.crear_evento(cita)
+    db.session.commit()
+
     return jsonify(cita.serialize()), 201
 
 
@@ -130,6 +135,10 @@ def editar_cita(cita_id):
         cita.estado = EstadoCita.REPROGRAMADA
 
     db.session.commit()
+
+    if reprograma:
+        google_calendar.actualizar_evento(cita)
+
     return jsonify(cita.serialize())
 
 
@@ -143,7 +152,10 @@ def cancelar_cita(cita_id):
     if claims.get("rol") == "especialista" and not es_propia:
         return jsonify(error="no autorizado para este recurso"), 403
 
+    google_calendar.eliminar_evento(cita)
+
     # Sin penalizacion ni cobro -- solo cambia el estado (ver docs/decisiones.md).
     cita.estado = EstadoCita.CANCELADA
+    cita.google_event_id = None
     db.session.commit()
     return jsonify(cita.serialize())

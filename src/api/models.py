@@ -3,7 +3,7 @@ from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
@@ -73,6 +73,9 @@ class Cita(db.Model):
         Enum(EstadoCita), nullable=False, default=EstadoCita.AGENDADA
     )
     google_event_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    especialista: Mapped["Usuario"] = relationship(foreign_keys=[especialista_id])
+    espacio: Mapped["EspacioTrabajo"] = relationship(foreign_keys=[espacio_id])
 
     def serialize(self):
         return {
