@@ -17,6 +17,17 @@
 | Inventario | Descuento automático por receta fija de insumos por servicio. Unidades enteras (no ml/volumen) |
 | Envío de email | **SMTP de Gmail (app password)** — simple para desarrollo, sin alta en servicio nuevo. Suficiente para el MVP del bootcamp; se puede migrar a un servicio transaccional (Resend/SendGrid) si esto llega a producción real |
 
+## Spike OAuth2 Google Calendar (issue #1) — resultado
+
+Probado con `scripts/spike_google_calendar.py` (`google-auth`, `google-auth-oauthlib`, `google-api-python-client`, flujo `InstalledAppFlow`). Resultado: **funciona** — se autorizó, se creó un evento vía API y se listaron eventos existentes sin problema.
+
+Limitaciones encontradas mientras el proyecto de Google Cloud esté en modo **Testing** (Google Auth Platform → Público → Estado de publicación):
+- Solo pueden usarlo las cuentas agregadas explícitamente como **usuario de prueba** (máximo 100).
+- El `refresh_token` emitido en modo Testing **expira a los 7 días** — hay que re-autorizar si el token queda viejo. No pasar a modo Production sin necesidad: requiere verificación de Google (puede tardar días/semanas) por el scope de Calendar (sensible).
+- Scope usado: `https://www.googleapis.com/auth/calendar` (acceso completo de lectura/escritura).
+
+**Pendiente para el issue #5 (integración real):** el spike se autorizó contra una cuenta de Google personal de prueba. Para producción hay que repetir la autorización con la **cuenta de Google real de la clínica** (la única compartida, ver fila "Calendario" arriba) — no reusar la cuenta personal usada en el spike.
+
 ## Roles del sistema
 
 Administrador (Dueña), Asistente, Especialista — 3 roles con vistas y permisos distintos. Matriz completa de permisos: ver `decisiones.md`.
