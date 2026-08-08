@@ -26,6 +26,7 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 | Registro de usuarios | No hay auto-registro público. El Admin da de alta a Asistentes/Especialistas capturando su **email real** — esto habilita el flujo de restablecimiento de contraseña (ver issue #26) |
 | Restablecimiento de contraseña | Flujo por **email**: el usuario solicita el reset con su email, el sistema genera un token temporal y envía un link; el usuario define nueva contraseña desde ahí (ver issue #27) |
 | Cifrado de contraseña | **`werkzeug.security`** (`generate_password_hash` / `check_password_hash`) — ya viene con Flask, no requiere dependencia extra (ver issue #25) |
+| Alcance: mono-clínica vs. multi-tenant | **Mono-clínica.** El sistema es para una sola clínica (una Dueña, un equipo, un calendario). No hay modelo `Clinica`, no hay `clinica_id` en las tablas, no hay flujo de registro de nuevas clínicas. "SaaS" describe el tipo de sistema (plataforma de gestión), no que soporte múltiples clínicas a la vez — para eso se necesitaría una instancia separada por clínica |
 
 ## Matriz de permisos por rol (confirmada)
 
