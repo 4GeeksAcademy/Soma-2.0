@@ -80,3 +80,7 @@ database.database
 database.db
 diagram.png
 __pycache__/
+
+# Google Calendar OAuth2 -- nunca commitear (issue #1)
+google_credentials.json
+google_token.json
