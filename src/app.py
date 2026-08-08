@@ -11,6 +11,7 @@ from api.models import db
 from api.routes import api
 from api.auth import auth
 from api.espacios import espacios
+from api.citas import citas
 from api.admin import setup_admin
 from api.commands import setup_commands
 
@@ -50,6 +51,7 @@ setup_commands(app)
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(auth)
 app.register_blueprint(espacios)
+app.register_blueprint(citas)
 
 # Handle/serialize errors like a JSON object
 
