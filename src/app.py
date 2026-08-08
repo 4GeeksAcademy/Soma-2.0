@@ -5,9 +5,12 @@ import os
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
+from flask_jwt_extended import JWTManager
 from api.utils import APIException, generate_sitemap
 from api.models import db
 from api.routes import api
+from api.auth import auth
+from api.espacios import espacios
 from api.admin import setup_admin
 from api.commands import setup_commands
 
@@ -22,14 +25,20 @@ app.url_map.strict_slashes = False
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
-        "postgres://", "postgresql://")
+    # psycopg v3 (no psycopg2-binary -- sin wheels para Python 3.14+) requiere el driver explicito
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif db_url.startswith("postgresql://") and "+psycopg" not in db_url:
+        db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
 MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
+JWTManager(app)
 
 # add the admin
 setup_admin(app)
@@ -39,6 +48,8 @@ setup_commands(app)
 
 # Add all endpoints form the API with a "api" prefix
 app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(auth)
+app.register_blueprint(espacios)
 
 # Handle/serialize errors like a JSON object
 
