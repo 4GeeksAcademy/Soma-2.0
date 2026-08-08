@@ -10,7 +10,7 @@
 | Base de datos | PostgreSQL |
 | Autenticación | JWT |
 | Cifrado de contraseña | `werkzeug.security` (`generate_password_hash` / `check_password_hash`) — ya viene con Flask, sin dependencia extra |
-| Estructura de repo | Monorepo — `/frontend` y `/backend` en el mismo repo (`Soma`) |
+| Estructura de repo | Monorepo — plantilla 4Geeks (`src/api` + `src/front`) en el repo `Soma-2.0`, requisito de evaluación del bootcamp |
 | Calendario | Google Calendar real (OAuth2 + Google Calendar API) — **un solo calendario compartido de la clínica**, no uno por especialista. Eventos etiquetados con especialista y espacio de trabajo asignados |
 | Recursos de agenda | Cada cita requiere **especialista + espacio de trabajo** disponibles simultáneamente (varias especialistas, varios espacios) |
 | Firma de consentimientos | Firma digital (canvas), texto genérico único para todos los tratamientos |
