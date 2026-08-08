@@ -13,7 +13,7 @@ Meta interna de equipo: **21 de agosto de 2026**. Entrega oficial 4Geeks: **28 d
 ## M2 — MVP
 **Fecha límite: lunes 10 de agosto**
 
-- Login con 3 roles (Administrador, Asistente, Especialista).
+- Login con 3 roles (Administrador, Asistente, Especialista) — incluye modelo de Usuario con email real y contraseña cifrada (Werkzeug), alta de usuario por Admin, y restablecimiento de contraseña por email (issues #25, #26, #27).
 - Gestión de Pacientes + expediente básico.
 - Catálogo de servicios y paquetes (alta de servicios, armado de paquetes predefinidos).
 - Espacios de trabajo (configuración) — requerido por Agenda para evitar choques de recursos.

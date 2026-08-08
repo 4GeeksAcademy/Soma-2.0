@@ -18,3 +18,21 @@ Proyecto Final 4Geeks. Sistema de administración para una clínica de estética
 ## Roles del sistema
 
 Administrador (Dueña), Asistente, Especialista — permisos exactos en definición (ver `docs/decisiones.md`).
+
+## Instalación (plantilla 4Geeks — React + Flask)
+
+Backend:
+
+1. Instalar paquetes: `pipenv install`
+2. Copiar `.env.example` a `.env` y llenar los valores reales
+3. Crear la base de datos (Postgres) y setear `DATABASE_URL` en `.env`
+4. Generar migración: `pipenv run migrate` (solo si hay cambios en `src/api/models.py`)
+5. Aplicar migración: `pipenv run upgrade`
+6. Correr la app: `pipenv run start`
+
+Frontend:
+
+1. Instalar paquetes: `npm install`
+2. Correr el servidor de desarrollo: `npm run start`
+
+Más detalle en la [documentación oficial de la plantilla](https://4geeks.com/docs/start/react-flask-template).

@@ -2,7 +2,7 @@
 
 Registro de decisiones tomadas sobre el documento original de journey del usuario, y de lo que sigue abierto. Este archivo manda sobre `journey-usuario.md` en caso de conflicto.
 
-Última actualización: 2026-08-05 (sesión de equipo).
+Última actualización: 2026-08-08 (sesión de equipo).
 
 ## Resuelto
 
@@ -23,6 +23,9 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 | Integración de calendario | **Google Calendar real** (OAuth2 + API), confirmado. **Un solo calendario compartido de la clínica** (no uno por especialista) — eventos etiquetados con especialista y espacio. Se hace real desde el MVP (Milestone 2), no se construye un calendario interno temporal |
 | Estructura de repositorio | Monorepo: frontend y backend en el mismo repo |
 | Roles de los integrantes del equipo | Asignación por módulo (ownership vertical) — ver [`equipo.md`](equipo.md) |
+| Registro de usuarios | No hay auto-registro público. El Admin da de alta a Asistentes/Especialistas capturando su **email real** — esto habilita el flujo de restablecimiento de contraseña (ver issue #26) |
+| Restablecimiento de contraseña | Flujo por **email**: el usuario solicita el reset con su email, el sistema genera un token temporal y envía un link; el usuario define nueva contraseña desde ahí (ver issue #27) |
+| Cifrado de contraseña | **`werkzeug.security`** (`generate_password_hash` / `check_password_hash`) — ya viene con Flask, no requiere dependencia extra (ver issue #25) |
 
 ## Matriz de permisos por rol (confirmada)
 
@@ -46,4 +49,6 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 
 ## Pendiente
 
-Ninguno bloqueante — planeación cerrada. Cualquier ambigüedad nueva que surja durante el desarrollo se agrega a este archivo conforme aparezca.
+- Proveedor de envío de email para el restablecimiento de contraseña (ver `stack.md` — sección "Pendiente de definir").
+
+Ninguno de los pendientes es bloqueante — planeación cerrada. Cualquier ambigüedad nueva que surja durante el desarrollo se agrega a este archivo conforme aparezca.

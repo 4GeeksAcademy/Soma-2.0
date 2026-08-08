@@ -9,7 +9,8 @@
 | ORM | SQLAlchemy |
 | Base de datos | PostgreSQL |
 | Autenticación | JWT |
-| Estructura de repo | Monorepo — `/frontend` y `/backend` en el mismo repo (`La-Churrer-a`) |
+| Cifrado de contraseña | `werkzeug.security` (`generate_password_hash` / `check_password_hash`) — ya viene con Flask, sin dependencia extra |
+| Estructura de repo | Monorepo — plantilla 4Geeks (`src/api` + `src/front`) en el repo `Soma-2.0`, requisito de evaluación del bootcamp |
 | Calendario | Google Calendar real (OAuth2 + Google Calendar API) — **un solo calendario compartido de la clínica**, no uno por especialista. Eventos etiquetados con especialista y espacio de trabajo asignados |
 | Recursos de agenda | Cada cita requiere **especialista + espacio de trabajo** disponibles simultáneamente (varias especialistas, varios espacios) |
 | Firma de consentimientos | Firma digital (canvas), texto genérico único para todos los tratamientos |
@@ -23,3 +24,4 @@ Administrador (Dueña), Asistente, Especialista — 3 roles con vistas y permiso
 
 - **Almacenamiento de fotos y firmas** (antes/después, firma digital de consentimientos): no se ha confirmado proveedor. Sugerencia a evaluar: Cloudinary (free tier) — evita montar un bucket S3 desde cero. **No confirmado por el equipo todavía.**
 - **Librería de calendario en frontend** para renderizar la vista de Agenda sincronizada con Google Calendar (ej. `react-big-calendar` o similar) — a decidir cuando se diseñe el módulo de Agenda.
+- **Proveedor de envío de email** (requerido para el restablecimiento de contraseña, issue #27): opciones a evaluar — SMTP de Gmail (app password, más simple para desarrollo, sin alta en un servicio nuevo) vs. un servicio transaccional tipo Resend o SendGrid (mejor entregabilidad, más apropiado si esto llega a producción real). **No confirmado por el equipo todavía.**
