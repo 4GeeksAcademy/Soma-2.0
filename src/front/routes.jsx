@@ -6,6 +6,7 @@ import {
     Route,
 } from "react-router-dom";
 import { Layout } from "./pages/Layout";
+import { Landing } from "./pages/Landing";
 import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
@@ -18,13 +19,16 @@ export const router = createBrowserRouter(
     // Note: keep in mind that errorElement will be the default page when you don't get a route, customize that page to make your project more attractive.
     // Note: The child paths of the Layout element replace the Outlet component with the elements contained in the "element" attribute of these child paths.
 
-      // Root Route: All navigation will start from here.
-      <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
+      <>
+        {/* Landing pública en "/" — sister route, fuera del Layout genérico: tiene su propio nav/footer de marca. */}
+        <Route path="/" element={<Landing />} errorElement={<h1>Not found!</h1>} />
 
-        {/* Nested Routes: Defines sub-routes within the BaseHome component. */}
-        <Route path= "/" element={<Home />} />
-        <Route path="/single/:theId" element={ <Single />} />  {/* Dynamic route for single items */}
-        <Route path="/demo" element={<Demo />} />
-      </Route>
+        {/* App autenticada bajo /app, con el Navbar/Footer compartido del Layout. */}
+        <Route path="/app" element={<Layout />} errorElement={<h1>Not found!</h1>} >
+          <Route index element={<Home />} />
+          <Route path="single/:theId" element={<Single />} />  {/* Dynamic route for single items */}
+          <Route path="demo" element={<Demo />} />
+        </Route>
+      </>
     )
 );

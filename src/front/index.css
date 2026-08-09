@@ -9,7 +9,7 @@
     @apply bg-paper text-ink font-body;
   }
   h1, h2, h3, h4 {
-    @apply font-display;
+    @apply font-display font-semibold;
   }
 }
 
@@ -21,5 +21,19 @@
   /* Glass Ink — overlays directamente sobre fotografía real (galería, antes/después) */
   .glass-ink {
     @apply bg-ink/45 backdrop-blur-glass border border-white/20 text-paper;
+  }
+  /* Fondo cálido tipo fotografía (gradiente, no imagen real) para hero e imágenes de producto */
+  .landing-hero-photo {
+    position: relative;
+    background:
+      radial-gradient(130% 90% at 90% 4%, rgba(255, 255, 255, 0.4), transparent 55%),
+      linear-gradient(150deg, #F1E4D5 0%, #E4CDAE 32%, #C79E77 64%, #86583A 100%);
+  }
+  .landing-hero-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(200deg, transparent 45%, rgba(28, 24, 21, 0.3) 100%);
   }
 }
