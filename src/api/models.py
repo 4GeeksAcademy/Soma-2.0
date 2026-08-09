@@ -93,6 +93,15 @@ class Cita(db.Model):
 
 #Tabla/entidad paquete paciente instancia de paquete comprado por un paciente 
 
+class FormaPagoPaquete(str, enum.Enum):
+          CONTADO = "contado"
+          PLAZOS = "plazos"
+
+
+class EstadoPaquete(str, enum.Enum):
+        ACTIVO = "activo"
+        AGOTADO = "agotado"
+
 class PaquetePaciente(db.Model):
     __tablename__ = "paquete_paciente"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -138,6 +147,21 @@ class Venta(db.Model):
             deuda = self.monto_total - self.monto_abonado #calculo de los abonos realizados
             return max(0.0, round(deuda, 2))
 
+        def serialize(self):
+            return {
+                "id": self.id,
+                "paciente_id": self.paciente_id,
+                "cita_id": self.cita_id,
+                "servicio_id": self.servicio_id,
+                "paquete_paciente_id": self.paquete_paciente_id,
+                "monto_total": self.monto_total,
+                "monto_abonado": self.monto_abonado,
+                "deuda_pendiente": self.deuda_pendiente,
+                "fecha": self.fecha.isoformat(),
+                "pagos": [pago.serialize() for pago in self.pagos]
+
+            }
+
 
 #Tabla/entidad pago // Guarda cada transacción o abono individual de una venta
 
@@ -168,7 +192,7 @@ class Comision(db.Model):
         especialista_id: Mapped[int] = mapped_column(ForeignKey("usuario.id"), nullable=False)
         venta_id: Mapped[int] = mapped_column(ForeignKey("venta.id"), nullable=False)
         monto: Mapped[float] = mapped_column(Float, nullable=False)
-        mes: Mapped[str] = mapped_column(String(7), nullable=False) # da format (yyy-mm)
+        mes: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
         pagada: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
         especialista: Mapped["Usuario"] = relationship(foreign_keys=[especialista_id])
         venta: Mapped["Venta"] = relationship(foreign_keys=[venta_id])
