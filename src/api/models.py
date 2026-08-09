@@ -124,75 +124,34 @@ class Paciente(db.Model):
         String(20), unique=True, nullable=False)
     ocupacion: Mapped[str | None] = mapped_column(String(120), nullable=True)
     edad: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    firma_consentimiento: Mapped[str | None] = mapped_column(
+        String(300), nullable=True)
+    fecha_firma_consentimiento: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True)
+
     citas: Mapped[list["Cita"]] = relationship(back_populates="paciente")
+    historial: Mapped["HistorialClinico"] = relationship(
+        back_populates="paciente", uselist=False)
 
     def serialize(self):
         return {"id": self.id, "nombre": self.nombre, "cedula": self.cedula, "telefono": self.telefono, "ocupacion": self.ocupacion, "edad": self.edad}
 
 
-class ExpedienteClinico(db.Model):
-    __tablename__ = "expediente_clinico"
+class HistorialClinico(db.Model):
+    __tablename__ = "historial_clinico"
     id: Mapped[int] = mapped_column(primary_key=True)
     paciente_id: Mapped[int] = mapped_column(
         ForeignKey("paciente.id"), nullable=False)
     alergias: Mapped[str | None] = mapped_column(String(250), nullable=True)
-    cirugias: Mapped[str | None] = mapped_column(String(250), nullable=True)
-    enfermedades_cronicas: Mapped[str | None] = mapped_column(
-        String(250), nullable=True)
-    medicamentos: Mapped[str | None] = mapped_column(
-        String(250), nullable=True)
-    embarazo_lactancia: Mapped[str | None] = mapped_column(
-        String(250), nullable=True)
-    fototipo: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    sensibilidad: Mapped[str | None] = mapped_column(
-        String(250), nullable=True)
-    tratamientos_previos: Mapped[str | None] = mapped_column(
-        String(250), nullable=True)
-    paciente: Mapped["Paciente"] = relationship()
-    def serialize(self): return {
-        "id": self.id, "paciente_id": self.paciente_id, "alergias": self.alergias}
-
-
-class Consentimiento(db.Model):
-    __tablename__ = "consentimiento"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    paciente_id: Mapped[int] = mapped_column(
-        ForeignKey("paciente.id"), nullable=False)
-    firma: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    fecha_firma: Mapped[datetime | None] = mapped_column(
-        DateTime, nullable=True)
-    paciente: Mapped["Paciente"] = relationship()
-    def serialize(self): return {"id": self.id, "firma": self.firma}
-
-
-class FotoEvolucion(db.Model):
-    __tablename__ = "foto_evolucion"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    paciente_id: Mapped[int] = mapped_column(
-        ForeignKey("paciente.id"), nullable=False)
-    cita_id: Mapped[int | None] = mapped_column(
-        ForeignKey("cita.id"), nullable=True)
-    tipo: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    url: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    paciente: Mapped["Paciente"] = relationship()
-    cita: Mapped["Cita"] = relationship()
-    def serialize(self): return {"id": self.id,
-                                 "url": self.url, "tipo": self.tipo}
-
-
-class BitacoraEvolucion(db.Model):
-    __tablename__ = "bitacora_evolucion"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    paciente_id: Mapped[int] = mapped_column(
-        ForeignKey("paciente.id"), nullable=False)
-    cita_id: Mapped[int] = mapped_column(ForeignKey("cita.id"), nullable=False)
+    tipo_piel: Mapped[str | None] = mapped_column(String(50), nullable=True)
     observaciones: Mapped[str | None] = mapped_column(
         String(500), nullable=True)
-    parametros_usados: Mapped[str | None] = mapped_column(
-        String(500), nullable=True)
-    fecha: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    paciente: Mapped["Paciente"] = relationship()
-    cita: Mapped["Cita"] = relationship()
+    foto_antes_url: Mapped[str | None] = mapped_column(
+        String(300), nullable=True)
+    foto_despues_url: Mapped[str | None] = mapped_column(
+        String(300), nullable=True)
 
-    def serialize(self): return {"id": self.id,
-                                 "observaciones": self.observaciones}
+    paciente: Mapped["Paciente"] = relationship(back_populates="historial")
+
+    def serialize(self):
+        return {"id": self.id, "paciente_id": self.paciente_id, "alergias": self.alergias, "tipo_piel": self.tipo_piel, "observaciones": self.observaciones}
