@@ -129,6 +129,9 @@ class Paciente(db.Model):
     fecha_firma_consentimiento: Mapped[datetime | None] = mapped_column(
         DateTime, nullable=True)
 
+    alergias: Mapped[str | None] = mapped_column(String(250), nullable=True)
+    tipo_piel: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     citas: Mapped[list["Cita"]] = relationship(back_populates="paciente")
     historiales: Mapped[list["HistorialClinico"]
                         ] = relationship(back_populates="paciente")
@@ -141,6 +144,8 @@ class Paciente(db.Model):
             "telefono": self.telefono,
             "ocupacion": self.ocupacion,
             "edad": self.edad,
+            "alergias": self.alergias,
+            "tipo_piel": self.tipo_piel,
             "firma_consentimiento": self.firma_consentimiento,
             "fecha_firma_consentimiento": self.fecha_firma_consentimiento.isoformat() if self.fecha_firma_consentimiento else None
         }
@@ -153,8 +158,6 @@ class HistorialClinico(db.Model):
         ForeignKey("paciente.id"), nullable=False)
     cita_id: Mapped[int] = mapped_column(ForeignKey("cita.id"), nullable=False)
 
-    alergias: Mapped[str | None] = mapped_column(String(250), nullable=True)
-    tipo_piel: Mapped[str | None] = mapped_column(String(50), nullable=True)
     observaciones: Mapped[str | None] = mapped_column(
         String(500), nullable=True)
     foto_antes_url: Mapped[str | None] = mapped_column(
@@ -169,8 +172,6 @@ class HistorialClinico(db.Model):
             "id": self.id,
             "paciente_id": self.paciente_id,
             "cita_id": self.cita_id,
-            "alergias": self.alergias,
-            "tipo_piel": self.tipo_piel,
             "observaciones": self.observaciones,
             "foto_antes_url": self.foto_antes_url,
             "foto_despues_url": self.foto_despues_url
