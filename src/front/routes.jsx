@@ -8,6 +8,8 @@ import {
 import { Layout } from "./pages/Layout";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
+import { OlvidePassword } from "./pages/OlvidePassword";
+import { RestablecerPassword } from "./pages/RestablecerPassword";
 import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
@@ -27,6 +29,9 @@ export const router = createBrowserRouter(
 
         {/* Login — misma razón que Landing: chrome propio, no el Navbar/Footer boilerplate. */}
         <Route path="/login" element={<Login />} errorElement={<h1>Not found!</h1>} />
+        <Route path="/olvide-password" element={<OlvidePassword />} errorElement={<h1>Not found!</h1>} />
+        {/* Path exacto esperado por el link del correo -- ver src/api/auth.py::_enviar_email_reset */}
+        <Route path="/restablecer-password" element={<RestablecerPassword />} errorElement={<h1>Not found!</h1>} />
 
         {/* App autenticada bajo /app: ProtectedRoute exige sesión antes de mostrar el Layout compartido. */}
         <Route path="/app" element={<ProtectedRoute />} errorElement={<h1>Not found!</h1>} >

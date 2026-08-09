@@ -39,3 +39,19 @@ export const cambiarPassword = (token, passwordActual, passwordNueva) =>
 		},
 		body: JSON.stringify({ password_actual: passwordActual, password_nueva: passwordNueva })
 	});
+
+// POST /api/auth/reset-password/solicitar -> { mensaje } (siempre genérico, exista o no el email -- #24)
+export const solicitarResetPassword = (email) =>
+	request("/api/auth/reset-password/solicitar", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ email })
+	});
+
+// POST /api/auth/reset-password/confirmar -> { mensaje } | 400 si el token es inválido/expiró (1h de vigencia)
+export const confirmarResetPassword = (token, passwordNueva) =>
+	request("/api/auth/reset-password/confirmar", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ token, password_nueva: passwordNueva })
+	});
