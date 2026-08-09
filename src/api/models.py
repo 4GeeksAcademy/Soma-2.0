@@ -117,7 +117,7 @@ class Cita(db.Model):
 class Paciente(db.Model):
     __tablename__ = "paciente"
     id: Mapped[int] = mapped_column(primary_key=True)
-    nombre: Mapped[str] = mapped_column(String(120), nullable=False)
+    nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
     cedula: Mapped[str] = mapped_column(
         String(50), unique=True, nullable=False)
     telefono: Mapped[str] = mapped_column(
@@ -134,7 +134,7 @@ class Paciente(db.Model):
         back_populates="paciente", uselist=False)
 
     def serialize(self):
-        return {"id": self.id, "nombre": self.nombre, "cedula": self.cedula, "telefono": self.telefono, "ocupacion": self.ocupacion, "edad": self.edad}
+        return {"id": self.id, "nombre_completo": self.nombre_completo, "cedula": self.cedula, "telefono": self.telefono, "ocupacion": self.ocupacion, "edad": self.edad}
 
 
 class HistorialClinico(db.Model):
