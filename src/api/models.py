@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -118,23 +118,28 @@ class Paciente(db.Model):
     __tablename__ = "paciente"
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
-    cedula: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    telefono: Mapped[str] = mapped_column(String(20), unique=True, nullable=False) 
+    cedula: Mapped[str] = mapped_column(
+        String(50), unique=True, nullable=False)
+    telefono: Mapped[str] = mapped_column(
+        String(20), unique=True, nullable=False)
     ocupacion: Mapped[str | None] = mapped_column(String(120), nullable=True)
     edad: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    firma_consentimiento: Mapped[str | None] = mapped_column(String(300), nullable=True) 
-    fecha_firma_consentimiento: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    
+    firma_consentimiento: Mapped[str | None] = mapped_column(
+        String(300), nullable=True)
+    fecha_firma_consentimiento: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True)
+
     citas: Mapped[list["Cita"]] = relationship(back_populates="paciente")
-    historiales: Mapped[list["HistorialClinico"]] = relationship(back_populates="paciente")
-    
+    historiales: Mapped[list["HistorialClinico"]
+                        ] = relationship(back_populates="paciente")
+
     def serialize(self):
         return {
-            "id": self.id, 
-            "nombre_completo": self.nombre_completo, 
-            "cedula": self.cedula, 
-            "telefono": self.telefono, 
-            "ocupacion": self.ocupacion, 
+            "id": self.id,
+            "nombre_completo": self.nombre_completo,
+            "cedula": self.cedula,
+            "telefono": self.telefono,
+            "ocupacion": self.ocupacion,
             "edad": self.edad,
             "firma_consentimiento": self.firma_consentimiento,
             "fecha_firma_consentimiento": self.fecha_firma_consentimiento.isoformat() if self.fecha_firma_consentimiento else None
@@ -144,26 +149,28 @@ class Paciente(db.Model):
 class HistorialClinico(db.Model):
     __tablename__ = "historial_clinico"
     id: Mapped[int] = mapped_column(primary_key=True)
-    paciente_id: Mapped[int] = mapped_column(ForeignKey("paciente.id"), nullable=False)
+    paciente_id: Mapped[int] = mapped_column(
+        ForeignKey("paciente.id"), nullable=False)
     cita_id: Mapped[int] = mapped_column(ForeignKey("cita.id"), nullable=False)
-    
+
     alergias: Mapped[str | None] = mapped_column(String(250), nullable=True)
     tipo_piel: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    observaciones: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    foto_antes_url: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    foto_despues_url: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    
-  
-    paciente: Mapped["Paciente"] = relationship(back_populates="historiales")
-    
-    def serialize(self):
+    observaciones: Mapped[str | None] = mapped_column(
+        String(500), nullable=True)
+    foto_antes_url: Mapped[str | None] = mapped_column(
+        String(300), nullable=True)
+    foto_despues_url: Mapped[str | None] = mapped_column(
+        String(300), nullable=True)
 
+    paciente: Mapped["Paciente"] = relationship(back_populates="historiales")
+
+    def serialize(self):
         return {
-            "id": self.id, 
+            "id": self.id,
             "paciente_id": self.paciente_id,
             "cita_id": self.cita_id,
-            "alergias": self.alergias, 
-            "tipo_piel": self.tipo_piel, 
+            "alergias": self.alergias,
+            "tipo_piel": self.tipo_piel,
             "observaciones": self.observaciones,
             "foto_antes_url": self.foto_antes_url,
             "foto_despues_url": self.foto_despues_url
