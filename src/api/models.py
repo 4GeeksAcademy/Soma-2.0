@@ -118,19 +118,20 @@ class PaquetePaciente(db.Model):
     paciente_id: Mapped[int] = mapped_column(Integer, nullable=False)
     paquete_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     fecha_compra: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    forma_pago: Mapped[str] = mapped_column(String(20), default="contado", nullable=False) #de contado o a plazos
-    estado: Mapped[str] = mapped_column(String(20), default="activo", nullable=False) #activo o agotado
+    forma_pago: Mapped[FormaPagoPaquete] = mapped_column(Enum(FormaPagoPaquete), default=FormaPagoPaquete.CONTADO,
+  nullable=False) #de contado o a plazos
+    estado: Mapped[EstadoPaquete] = mapped_column(Enum(EstadoPaquete), default=EstadoPaquete.ACTIVO, nullable=False)
 
     def serialize(self):
-        return {
-            "id": self.id,
+            return {
+                "id": self.id,
                 "paciente_id": self.paciente_id,
                 "paquete_id": self.paquete_id,
                 "fecha_compra": self.fecha_compra.strftime('%Y-%m-%d') if self.fecha_compra else None,
-                "forma_pago": self.forma_pago,
-                "estado": self.estado,
+                "forma_pago": self.forma_pago.value if isinstance(self.forma_pago, enum.Enum) else self.forma_pago,
+                "estado": self.estado.value if isinstance(self.estado, enum.Enum) else self.estado,
 
-        }        
+            }            
 
 
 #Tabla/entidad venta // Transacción realizada a un paciente con cálculo automático de abonos y deuda
