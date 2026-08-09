@@ -1,1 +1,25 @@
-@import './styles/tokens.css';
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-body;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  /* Glass Light — tarjetas y modales elevados sobre fondo blanco */
+  .glass-light {
+    @apply bg-white/60 backdrop-blur-glass border border-white/65;
+  }
+  /* Glass Ink — overlays directamente sobre fotografía real (galería, antes/después) */
+  .glass-ink {
+    @apply bg-ink/45 backdrop-blur-glass border border-white/20 text-paper;
+  }
+}
