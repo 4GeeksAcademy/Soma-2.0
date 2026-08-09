@@ -37,8 +37,12 @@ Los 4 módulos (Agenda, Pacientes, Catálogo, Ventas) no son independientes a ni
 | edad | número |
 | tipo_piel | texto |
 | alergias | texto |
+| firma_consentimiento | imagen/base64, nullable |
+| fecha_firma_consentimiento | fecha, nullable |
 
 **Cambios 2026-08-08:** `nombre` → `nombre_completo`. Se agregan `cedula`, `tipo_piel`, `alergias`. Se quita `ocupacion` (no se implementó). `telefono` sigue siendo el único campo con restricción `unique` — es el identificador de búsqueda, no `cedula` (aunque `cedula` también sea única como dato de identidad, no reemplaza a `telefono` en ese rol).
+
+`firma_consentimiento`/`fecha_firma_consentimiento` reemplazan al modelo `Consentimiento` que se había planeado aparte — van en `Paciente`, no en `HistorialClinico`, porque es **una firma por paciente, una sola vez** ("texto genérico único para todos los tratamientos", ver `decisiones.md`), no una firma por visita.
 
 ## `HistorialClinico` — Jhunalbis
 

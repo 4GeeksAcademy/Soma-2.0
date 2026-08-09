@@ -28,7 +28,8 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 | Cifrado de contraseña | **`werkzeug.security`** (`generate_password_hash` / `check_password_hash`) — ya viene con Flask, no requiere dependencia extra (ver issue #25) |
 | Alcance: mono-clínica vs. multi-tenant | **Mono-clínica.** El sistema es para una sola clínica (una Dueña, un equipo, un calendario). No hay modelo `Clinica`, no hay `clinica_id` en las tablas, no hay flujo de registro de nuevas clínicas. "SaaS" describe el tipo de sistema (plataforma de gestión), no que soporte múltiples clínicas a la vez — para eso se necesitaría una instancia separada por clínica |
 | Proveedor de envío de email | **SMTP de Gmail (app password)** — ver `stack.md` (issue #24) |
-| Historial clínico del paciente | **Se consolida en un solo modelo `HistorialClinico`** (una fila por visita: fotos antes/después + observaciones), reemplazando los 4 modelos separados que estaban planeados (`ExpedienteClinico`, `Consentimiento`, `FotoEvolucion`, `BitacoraEvolucion`). Ver `modelo-datos.md` — **ojo:** esto dejó sin modelar la firma digital del consentimiento, ver Pendiente |
+| Historial clínico del paciente | **Se consolida en un solo modelo `HistorialClinico`** (una fila por visita: fotos antes/después + observaciones), reemplazando 3 de los 4 modelos separados que estaban planeados (`ExpedienteClinico`, `FotoEvolucion`, `BitacoraEvolucion`). Ver `modelo-datos.md` |
+| Dónde vive la firma del consentimiento | **En `Paciente`** (`firma_consentimiento`/`fecha_firma_consentimiento`), no en `HistorialClinico` ni como modelo aparte — es una firma **por paciente, una sola vez** (texto genérico único para todos los tratamientos), no una por visita |
 
 ## Matriz de permisos por rol (confirmada)
 
@@ -52,6 +53,4 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 
 ## Pendiente
 
-- **Dónde vive la firma digital del consentimiento informado.** Ya está confirmado que el consentimiento se firma digital (canvas, texto genérico único — ver fila arriba), pero al consolidar en `HistorialClinico` no quedó un campo para guardar esa firma ni la fecha de firma. Hay que decidir si se agrega a `HistorialClinico` o si el consentimiento sigue siendo un modelo aparte.
-
-Cualquier ambigüedad nueva que surja durante el desarrollo se agrega a este archivo conforme aparezca.
+Ninguno de los pendientes es bloqueante — planeación cerrada. Cualquier ambigüedad nueva que surja durante el desarrollo se agrega a este archivo conforme aparezca.
