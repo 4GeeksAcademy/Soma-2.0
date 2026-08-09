@@ -5,16 +5,16 @@ export const initialStore=()=>{
       {
         id: 1,
         title: "Make the bed",
-        background: null,
+        background: null
       },
       {
         id: 2,
         title: "Do my homework",
-        background: null,
+        background: null
       }
     ]
-  }
-}
+  };
+};
 
 export default function storeReducer(store, action = {}) {
   switch(action.type){
@@ -26,7 +26,7 @@ export default function storeReducer(store, action = {}) {
       
     case 'add_task':
 
-      const { id,  color } = action.payload
+      const { id,  color } = action.payload;
 
       return {
         ...store,
