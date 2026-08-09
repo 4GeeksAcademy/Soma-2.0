@@ -150,7 +150,7 @@ export const Landing = () => {
 							Confianza
 						</a>
 						<Link
-							to="/app"
+							to="/login"
 							className="rounded-full bg-ink px-5 py-2.5 text-[13.5px] font-bold text-paper hover:bg-cafe"
 						>
 							Iniciar sesión
@@ -344,7 +344,7 @@ export const Landing = () => {
 							Ver cómo funciona
 						</a>
 						<Link
-							to="/app"
+							to="/login"
 							className="inline-flex items-center gap-2.5 rounded-full border-[1.5px] border-beige px-6 py-3.5 text-[15px] font-bold text-ink hover:border-cafe hover:text-cafe"
 						>
 							Iniciar sesión
