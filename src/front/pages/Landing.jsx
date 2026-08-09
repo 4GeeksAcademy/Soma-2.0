@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
 
 // Copy y estructura definidos junto con Jorge — ver docs/identidad-visual.md.
 // Storytelling: "un día en Soma" en vez de una lista de features (sizzle, no steak).
@@ -9,15 +10,15 @@ const antesDespues = {
 		"El expediente del paciente vive en una carpeta física.",
 		"El consentimiento se firma en una hoja que alguien tiene que archivar.",
 		'El inventario se descuenta "a ojo", hasta que un día falta el insumo.',
-		"Las comisiones se calculan a mano, al final del mes, con margen de error.",
+		"Las comisiones se calculan a mano, al final del mes, con margen de error."
 	],
 	despues: [
 		"La cita se agenda una vez y todos ven la disponibilidad real.",
 		"El expediente clínico se abre con un clic, historial incluido.",
 		"El consentimiento se firma en la tablet, queda guardado con la cita.",
 		"El inventario se descuenta solo, por receta fija de cada servicio.",
-		"Las comisiones y la caja del día están listas cuando cierras.",
-	],
+		"Las comisiones y la caja del día están listas cuando cierras."
+	]
 };
 
 const timeline = [
@@ -28,8 +29,8 @@ const timeline = [
 		rows: [
 			{ k: "10:00", v: "Lucía F. — Manicure 3D" },
 			{ k: "12:00", v: "Ana M. — Ritual facial 90’" },
-			{ k: "15:30", v: "Diego R. — Depilación láser" },
-		],
+			{ k: "15:30", v: "Diego R. — Depilación láser" }
+		]
 	},
 	{
 		time: "11:30 AM",
@@ -38,8 +39,8 @@ const timeline = [
 		rows: [
 			{ k: "Paciente", v: "Ana Martínez" },
 			{ k: "Consentimiento", badge: { tone: "success", text: "Firmado" } },
-			{ k: "Alergias", v: "Ninguna registrada" },
-		],
+			{ k: "Alergias", v: "Ninguna registrada" }
+		]
 	},
 	{
 		time: "2:00 PM",
@@ -48,8 +49,8 @@ const timeline = [
 		rows: [
 			{ k: "Ácido hialurónico", badge: { tone: "warning", text: "Stock bajo" } },
 			{ k: "Cera depilatoria", v: "14 u." },
-			{ k: "Guantes nitrilo", v: "3 cajas" },
-		],
+			{ k: "Guantes nitrilo", v: "3 cajas" }
+		]
 	},
 	{
 		time: "6:00 PM",
@@ -58,24 +59,24 @@ const timeline = [
 		rows: [
 			{ k: "Ocupación", v: "86%" },
 			{ k: "Ventas del día", v: "$18,400.00" },
-			{ k: "Comisiones", v: "$4,120.00" },
-		],
-	},
+			{ k: "Comisiones", v: "$4,120.00" }
+		]
+	}
 ];
 
 const confianza = [
 	{
 		fuerte: "Nada se pierde en un chat.",
-		resto: "El consentimiento queda guardado con la cita, no en una hoja suelta que alguien tiene que archivar.",
+		resto: "El consentimiento queda guardado con la cita, no en una hoja suelta que alguien tiene que archivar."
 	},
 	{
 		fuerte: "Nadie ve lo que no le toca.",
-		resto: "Recepción agenda; el expediente clínico lo abre quien atiende.",
+		resto: "Recepción agenda; el expediente clínico lo abre quien atiende."
 	},
 	{
 		fuerte: "Tu información sigue siendo tuya.",
-		resto: "Se exporta cuando la necesites, sin depender de nadie más.",
-	},
+		resto: "Se exporta cuando la necesites, sin depender de nadie más."
+	}
 ];
 
 const Badge = ({ tone, text }) => {
@@ -92,6 +93,20 @@ const Badge = ({ tone, text }) => {
 		</span>
 	);
 };
+
+Badge.propTypes = {
+	tone: PropTypes.oneOf(["success", "warning"]).isRequired,
+	text: PropTypes.string.isRequired
+};
+
+const rowShape = PropTypes.shape({
+	k: PropTypes.string.isRequired,
+	v: PropTypes.string,
+	badge: PropTypes.shape({
+		tone: PropTypes.oneOf(["success", "warning"]).isRequired,
+		text: PropTypes.string.isRequired
+	})
+});
 
 const MockCard = ({ rows }) => (
 	<div className="w-full rounded-md border border-ink/[0.06] bg-paper px-[18px] py-4 shadow-card">
@@ -110,6 +125,10 @@ const MockCard = ({ rows }) => (
 		))}
 	</div>
 );
+
+MockCard.propTypes = {
+	rows: PropTypes.arrayOf(rowShape).isRequired
+};
 
 export const Landing = () => {
 	return (
@@ -290,7 +309,7 @@ export const Landing = () => {
 									rows={[
 										{ k: "Paciente", v: "Ana Martínez" },
 										{ k: "Consentimiento", badge: { tone: "success", text: "Firmado · 11:32 AM" } },
-										{ k: "Visible para", v: "Especialista, Admin." },
+										{ k: "Visible para", v: "Especialista, Admin." }
 									]}
 								/>
 							</div>
