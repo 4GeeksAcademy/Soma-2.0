@@ -31,48 +31,29 @@ Los 4 módulos (Agenda, Pacientes, Catálogo, Ventas) no son independientes a ni
 | Campo | Tipo / Referencia |
 |---|---|
 | id | PK |
-| nombre | texto |
-| telefono | texto, único (identificador de búsqueda) |
+| nombre_completo | texto |
+| telefono | texto, **único** (identificador de búsqueda — ver `decisiones.md`) |
+| cedula | texto, único |
 | edad | número |
-| ocupacion | texto |
+| tipo_piel | texto |
+| alergias | texto |
 
-## `ExpedienteClinico` — Jhunalbis
+**Cambios 2026-08-08:** `nombre` → `nombre_completo`. Se agregan `cedula`, `tipo_piel`, `alergias`. Se quita `ocupacion` (no se implementó). `telefono` sigue siendo el único campo con restricción `unique` — es el identificador de búsqueda, no `cedula` (aunque `cedula` también sea única como dato de identidad, no reemplaza a `telefono` en ese rol).
 
-| Campo | Tipo / Referencia |
-|---|---|
-| id | PK |
-| paciente_id | FK → Paciente |
-| alergias, cirugias, enfermedades_cronicas, medicamentos, embarazo_lactancia | texto |
-| fototipo, sensibilidad, tratamientos_previos | texto |
+## `HistorialClinico` — Jhunalbis
 
-## `Consentimiento` — Jhunalbis
-
-| Campo | Tipo / Referencia |
-|---|---|
-| id | PK |
-| paciente_id | FK → Paciente |
-| firma | imagen/base64 |
-| fecha_firma | fecha |
-
-## `FotoEvolucion` — Jhunalbis
-
-| Campo | Tipo / Referencia |
-|---|---|
-| id | PK |
-| paciente_id | FK → Paciente |
-| cita_id | FK → Cita, nullable |
-| tipo | enum: antes \| despues |
-| url | texto |
-
-## `BitacoraEvolucion` — Jhunalbis
+Reemplaza a los modelos `ExpedienteClinico`, `Consentimiento`, `FotoEvolucion` y `BitacoraEvolucion` que estaban planeados por separado — se consolidan en una sola tabla, una fila por visita.
 
 | Campo | Tipo / Referencia |
 |---|---|
 | id | PK |
 | paciente_id | FK → Paciente |
 | cita_id | FK → Cita |
-| observaciones, parametros_usados | texto |
-| fecha | fecha |
+| foto_antes_url | texto, nullable |
+| foto_despues_url | texto, nullable |
+| observaciones | texto, nullable |
+
+**Cambios 2026-08-08 (consolidación):** esta tabla **no tiene campo para la firma digital del consentimiento** (`firma`/`fecha_firma` del `Consentimiento` original) ni los campos clínicos detallados del `ExpedienteClinico` original (`cirugias`, `enfermedades_cronicas`, `medicamentos`, `embarazo_lactancia`, `fototipo`, `sensibilidad`, `tratamientos_previos`). Si el consentimiento informado con firma digital (ya confirmado en `decisiones.md`) sigue siendo un requisito, falta decidir dónde vive ese dato — no quedó modelado en ningún lado tras esta consolidación.
 
 ## `Servicio` — Kevin
 

@@ -27,6 +27,8 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 | Restablecimiento de contraseña | Flujo por **email**: el usuario solicita el reset con su email, el sistema genera un token temporal y envía un link; el usuario define nueva contraseña desde ahí (ver issue #27) |
 | Cifrado de contraseña | **`werkzeug.security`** (`generate_password_hash` / `check_password_hash`) — ya viene con Flask, no requiere dependencia extra (ver issue #25) |
 | Alcance: mono-clínica vs. multi-tenant | **Mono-clínica.** El sistema es para una sola clínica (una Dueña, un equipo, un calendario). No hay modelo `Clinica`, no hay `clinica_id` en las tablas, no hay flujo de registro de nuevas clínicas. "SaaS" describe el tipo de sistema (plataforma de gestión), no que soporte múltiples clínicas a la vez — para eso se necesitaría una instancia separada por clínica |
+| Proveedor de envío de email | **SMTP de Gmail (app password)** — ver `stack.md` (issue #24) |
+| Historial clínico del paciente | **Se consolida en un solo modelo `HistorialClinico`** (una fila por visita: fotos antes/después + observaciones), reemplazando los 4 modelos separados que estaban planeados (`ExpedienteClinico`, `Consentimiento`, `FotoEvolucion`, `BitacoraEvolucion`). Ver `modelo-datos.md` — **ojo:** esto dejó sin modelar la firma digital del consentimiento, ver Pendiente |
 
 ## Matriz de permisos por rol (confirmada)
 
@@ -50,6 +52,6 @@ Registro de decisiones tomadas sobre el documento original de journey del usuari
 
 ## Pendiente
 
-- Proveedor de envío de email para el restablecimiento de contraseña (ver `stack.md` — sección "Pendiente de definir").
+- **Dónde vive la firma digital del consentimiento informado.** Ya está confirmado que el consentimiento se firma digital (canvas, texto genérico único — ver fila arriba), pero al consolidar en `HistorialClinico` no quedó un campo para guardar esa firma ni la fecha de firma. Hay que decidir si se agrega a `HistorialClinico` o si el consentimiento sigue siendo un modelo aparte.
 
-Ninguno de los pendientes es bloqueante — planeación cerrada. Cualquier ambigüedad nueva que surja durante el desarrollo se agrega a este archivo conforme aparezca.
+Cualquier ambigüedad nueva que surja durante el desarrollo se agrega a este archivo conforme aparezca.
