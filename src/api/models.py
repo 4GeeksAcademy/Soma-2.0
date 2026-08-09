@@ -24,6 +24,10 @@ class Usuario(db.Model):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     rol: Mapped[RolUsuario] = mapped_column(Enum(RolUsuario), nullable=False)
     activo: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
+    debe_cambiar_password: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=False)
+
+    reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reset_token_expira: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -32,7 +36,13 @@ class Usuario(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def serialize(self):
-        return {"id": self.id, "nombre": self.nombre, "email": self.email, "rol": self.rol.value}
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "email": self.email,
+            "rol": self.rol.value,
+            "debe_cambiar_password": self.debe_cambiar_password,
+        }
 
 
 class EspacioTrabajo(db.Model):
