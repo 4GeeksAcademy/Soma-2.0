@@ -150,7 +150,7 @@ export const Landing = () => {
 							Confianza
 						</a>
 						<Link
-							to="/app"
+							to="/login"
 							className="rounded-full bg-ink px-5 py-2.5 text-[13.5px] font-bold text-paper hover:bg-cafe"
 						>
 							Iniciar sesión
@@ -164,7 +164,7 @@ export const Landing = () => {
 					<div>
 						<div className="mb-6 inline-flex items-center gap-2 rounded-full bg-nude py-[7px] pl-2.5 pr-3.5 text-[13px] font-semibold text-cafe">
 							<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cafe" />
-							Tu clínica se ve impecable. Por dentro, corre en WhatsApp y una libreta.
+							Todo en tu cabeza. Nada en un solo lugar.
 						</div>
 						<h1 className="mb-[22px] text-[50px] leading-[1.06] -tracking-[0.015em]">
 							Todo lo que hace tu clínica,
@@ -344,7 +344,7 @@ export const Landing = () => {
 							Ver cómo funciona
 						</a>
 						<Link
-							to="/app"
+							to="/login"
 							className="inline-flex items-center gap-2.5 rounded-full border-[1.5px] border-beige px-6 py-3.5 text-[15px] font-bold text-ink hover:border-cafe hover:text-cafe"
 						>
 							Iniciar sesión
