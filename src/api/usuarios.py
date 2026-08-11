@@ -16,6 +16,23 @@ def _generar_password_temporal(longitud=12):
     return "".join(secrets.choice(alfabeto) for _ in range(longitud))
 
 
+@usuarios.route("", methods=["GET"])
+@rol_requerido("admin", "asistente")
+def listar_usuarios():
+    """Admin y Asistente listan usuarios -- Asistente lo necesita para asignar
+    especialista al agendar una cita (ver docs/decisiones.md, matriz de permisos)."""
+    rol = request.args.get("rol")
+
+    query = Usuario.query
+    if rol:
+        roles_validos = [r.value for r in RolUsuario]
+        if rol not in roles_validos:
+            return jsonify(error=f"rol invalido, debe ser uno de: {roles_validos}"), 400
+        query = query.filter_by(rol=RolUsuario(rol))
+
+    return jsonify([u.serialize() for u in query.all()])
+
+
 @usuarios.route("", methods=["POST"])
 @rol_requerido("admin")
 def crear_usuario():
