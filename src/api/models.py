@@ -188,8 +188,7 @@ class HistorialClinico(db.Model):
             "foto_antes_url": self.foto_antes_url,
             "foto_despues_url": self.foto_despues_url,
         }
-
-
+ 
 # ============================================================
 # Servicio - Kevin
 # ============================================================
