@@ -98,8 +98,7 @@ class Cita(db.Model):
 
     especialista: Mapped["Usuario"] = relationship(
         foreign_keys=[especialista_id])
-    espacio: Mapped["EspacioTrabajo"] = relationship(
-        foreign_keys=[espacio_id])
+    espacio: Mapped["EspacioTrabajo"] = relationship(foreign_keys=[espacio_id])
 
     def serialize(self):
         return {
@@ -188,7 +187,7 @@ class HistorialClinico(db.Model):
             "foto_antes_url": self.foto_antes_url,
             "foto_despues_url": self.foto_despues_url,
         }
- 
+
 # ============================================================
 # Servicio - Kevin
 # ============================================================
