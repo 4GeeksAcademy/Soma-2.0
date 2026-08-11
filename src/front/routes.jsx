@@ -3,6 +3,7 @@
 import {
     createBrowserRouter,
     createRoutesFromElements,
+    Navigate,
     Route
 } from "react-router-dom";
 import { Layout } from "./pages/Layout";
@@ -10,10 +11,10 @@ import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { OlvidePassword } from "./pages/OlvidePassword";
 import { RestablecerPassword } from "./pages/RestablecerPassword";
-import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { Espacios } from "./pages/Espacios";
+import { Agenda } from "./pages/Agenda";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter(
@@ -37,10 +38,14 @@ export const router = createBrowserRouter(
         {/* App autenticada bajo /app: ProtectedRoute exige sesión antes de mostrar el Layout compartido. */}
         <Route path="/app" element={<ProtectedRoute />} errorElement={<h1>Not found!</h1>} >
           <Route element={<Layout />}>
-            <Route index element={<Home />} />
+            {/* Sin Dashboard real todavia (Vista 2 de docs/journey-usuario.md, modulo
+                de Francisco) -- redirige a Agenda en vez de mostrar el placeholder
+                del template. Cambiar aqui cuando el Dashboard aterrice. */}
+            <Route index element={<Navigate to="/app/agenda" replace />} />
             <Route path="single/:theId" element={<Single />} />  {/* Dynamic route for single items */}
             <Route path="demo" element={<Demo />} />
             <Route path="espacios" element={<Espacios />} />
+            <Route path="agenda" element={<Agenda />} />
           </Route>
         </Route>
       </>
