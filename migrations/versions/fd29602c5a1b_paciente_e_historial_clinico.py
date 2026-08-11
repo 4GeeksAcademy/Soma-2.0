@@ -67,4 +67,6 @@ def downgrade():
     with op.batch_alter_table('cita', schema=None) as batch_op:
         batch_op.drop_constraint(None, type_='foreignkey')
 
-
+    op.drop_table('historial_clinico')
+    op.drop_table('paciente')
+    # ### end Alembic commands ###
