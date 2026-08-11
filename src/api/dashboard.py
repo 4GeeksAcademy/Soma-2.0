@@ -2,8 +2,9 @@ from datetime import datetime, date, timedelta
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from sqlalchemy import func
-from api.decorators import rol_requerido
+from api.decorators import rol_requerido, permiso_requerido
 from api.models import db, Pago, Venta, Cita, EstadoCita
+from api.permisos import obtener_matriz_permisos
 
 dashboard = Blueprint("dashboard", __name__, url_prefix="/api/dashboard")
 CORS(dashboard)
@@ -72,8 +73,6 @@ def _obtener_citas_pendientes(inicio_fecha, fin_fecha):
         }
 
 
-
-
 @dashboard.route("/resumen", methods=["GET"])
 @rol_requerido("admin")
 def obtener_resumen_admin():
@@ -123,4 +122,10 @@ def obtener_resumen_admin():
         }), 200
 
 
+
+#Endpoint para obtener la matriz de los permisosprobe
+@dashboard.route("/matriz-permisos", methods=["GET"])
+@permiso_requerido("dashboard:matriz_permisos")
+def obtener_matriz():
+        return jsonify({"matriz": obtener_matriz_permisos()}), 200
 
