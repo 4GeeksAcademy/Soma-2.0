@@ -26,8 +26,7 @@ const aInputDatetime = (fecha) => format(fecha, "yyyy-MM-dd'T'HH:mm");
 // src/api/citas.py) pero los digitos que manda SIEMPRE son UTC -- new Date(str) sin
 // "Z" hace que el navegador los interprete como hora LOCAL, desfasando todo por el
 // offset de la zona horaria del usuario. Hay que forzar el parseo como UTC.
-const parsearFechaHoraUTC = (fechaHoraStr) =>
-	new Date(fechaHoraStr.endsWith("Z") ? fechaHoraStr : `${fechaHoraStr}Z`);
+const parsearFechaHoraUTC = (fechaHoraStr) => new Date(fechaHoraStr.endsWith("Z") ? fechaHoraStr : `${fechaHoraStr}Z`);
 
 const ESTADO_ETIQUETA = {
 	agendada: "Agendada",

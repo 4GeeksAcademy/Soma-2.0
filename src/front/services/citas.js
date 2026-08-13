@@ -3,8 +3,7 @@
 import { request, authHeaders } from "./api";
 
 // GET /api/citas -> [cita] (el backend ya filtra a "las mías" si el rol es especialista)
-export const listarCitas = (token) =>
-	request("/api/citas", { headers: authHeaders(token) });
+export const listarCitas = (token) => request("/api/citas", { headers: authHeaders(token) });
 
 // POST /api/citas -> cita | 409 si especialista o espacio ya están ocupados en ese horario
 export const crearCita = (token, { especialistaId, espacioId, fechaHora, pacienteId, servicioId }) =>

@@ -4,8 +4,7 @@
 import { request, authHeaders } from "./api";
 
 // GET /api/espacios -> [espacio]
-export const listarEspacios = (token) =>
-	request("/api/espacios", { headers: authHeaders(token) });
+export const listarEspacios = (token) => request("/api/espacios", { headers: authHeaders(token) });
 
 // POST /api/espacios -> espacio
 export const crearEspacio = (token, { nombre, tipo }) =>
