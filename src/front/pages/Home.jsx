@@ -3,7 +3,6 @@ import rigoImageUrl from "../assets/img/rigo-baby.jpg";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 
 export const Home = () => {
-
 	const { store, dispatch } = useGlobalReducer();
 
 	const loadMessage = async () => {
@@ -18,14 +17,13 @@ export const Home = () => {
 			if (response.ok) dispatch({ type: "set_hello", payload: data.message });
 
 			return data;
-
 		} catch (error) {
-			if (error.message) throw new Error(
-				`Could not fetch the message from the backend.
+			if (error.message)
+				throw new Error(
+					`Could not fetch the message from the backend.
 				Please check if the backend is running and the backend port is public.`
-			);
+				);
 		}
-
 	};
 
 	useEffect(() => {
@@ -49,4 +47,4 @@ export const Home = () => {
 			</div>
 		</div>
 	);
-}; 
+};
