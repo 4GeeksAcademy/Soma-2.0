@@ -9,8 +9,10 @@ CORS(espacios)
 
 
 @espacios.route("", methods=["GET"])
-@rol_requerido("admin")
+@rol_requerido("admin", "asistente")
 def listar_espacios():
+    """Admin y Asistente listan espacios -- Asistente lo necesita para asignar
+    espacio al agendar una cita (mismo criterio que GET /api/usuarios)."""
     return jsonify([e.serialize() for e in EspacioTrabajo.query.all()])
 
 

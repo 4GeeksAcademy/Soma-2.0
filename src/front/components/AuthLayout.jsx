@@ -9,9 +9,7 @@ export const inputClass =
 export const labelClass = "mb-1.5 block text-[13px] font-semibold text-ink-soft";
 
 export const ErrorBanner = ({ mensaje }) =>
-	mensaje ? (
-		<div className="mb-5 rounded-sm bg-error-bg px-4 py-3 text-[13.5px] text-error-text">{mensaje}</div>
-	) : null;
+	mensaje ? <div className="mb-5 rounded-sm bg-error-bg px-4 py-3 text-[13.5px] text-error-text">{mensaje}</div> : null;
 
 ErrorBanner.propTypes = {
 	mensaje: PropTypes.string
