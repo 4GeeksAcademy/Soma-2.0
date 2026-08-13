@@ -1,27 +1,28 @@
 import React, { useState, useEffect, useCallback } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { obtenerResumenDashboard } from "../services/dashboard.js";
+import { Navigate } from "react-router-dom";
 
 
-const formatMoney = (amount) => {
-    return new Intl.NumberFormat("es-CL", {
-        style: "currency",
-        currency: "CLP",
-        maximumFractionDigits: 0,
-    }).format(amount || 0);
-};
+ const formatMoney = (amount) => {
+        return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 2,
+        }).format(amount || 0);
+    };
 
-const formatTime = (isoString) => {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    return date.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hour12: true });
-};
+    const formatTime = (isoString) => {
+        if (!isoString) return "";
+        const date = new Date(isoString);
+        return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    };
 
-const formatDateShort = (isoString) => {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    return date.toLocaleDateString("es-CL", { weekday: "short", day: "numeric", month: "short" });
-};
+    const formatDateShort = (isoString) => {
+        if (!isoString) return "";
+        const date = new Date(isoString);
+        return date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+    };
 
 export const DashboardAdmin = () => {
     const { store } = useGlobalReducer();
@@ -67,6 +68,10 @@ export const DashboardAdmin = () => {
     const maxMontoTop = resumen?.servicios_top?.length
         ? Math.max(...resumen.servicios_top.map((s) => s.monto_total))
         : 1;
+
+    if (usuario && usuario.rol !== "admin") {
+        return <Navigate to="/app/agenda" replace />;
+    }    
 
     return (
         <div className="min-h-screen bg-paper px-4 py-8 md:px-8 lg:px-12 font-body text-ink">

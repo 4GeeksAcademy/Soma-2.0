@@ -123,9 +123,4 @@ def obtener_resumen_admin():
 
 
 
-#Endpoint para obtener la matriz de los permisosprobe
-@dashboard.route("/matriz-permisos", methods=["GET"])
-@permiso_requerido("dashboard:matriz_permisos")
-def obtener_matriz():
-        return jsonify({"matriz": obtener_matriz_permisos()}), 200
 
