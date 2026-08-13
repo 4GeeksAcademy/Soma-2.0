@@ -15,6 +15,7 @@ import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { DashboardAdmin } from "./pages/DashboardAdmin";
+import { AppIndexRedirect } from "./components/AppIndexRedirect";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -38,7 +39,8 @@ export const router = createBrowserRouter(
       <Route path="/app" element={<ProtectedRoute />} errorElement={<h1>Not found!</h1>} >
         <Route element={<Layout />}>
           <Route index element={<DashboardAdmin />} />
-          <Route path="dashboard" element={<DashboardAdmin />} />
+          <Route index element={<AppIndexRedirect />} />
+          <Route path="dashboard" element={<DashboardAdmin />} /> 
           <Route path="home" element={<Home />} />
           <Route path="single/:theId" element={<Single />} />  {/* Dynamic route for single items */}
           <Route path="demo" element={<Demo />} />
