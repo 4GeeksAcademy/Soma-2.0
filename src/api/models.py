@@ -73,14 +73,16 @@ class Cita(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    # Paciente y Servicio todavia no existen en el repo (issues #8 y #12, Jhunalbis/Kevin).
-    # Se guardan como columnas simples por ahora -- se agrega la FK real cuando esas
-    # tablas aterricen (ver docs/modelo-datos.md).
     paciente_id: Mapped[int | None] = mapped_column(
         ForeignKey("paciente.id"), nullable=True)
     paciente: Mapped["Paciente"] = relationship(back_populates="citas")
 
-    servicio_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    servicio_id: Mapped[int | None] = mapped_column(
+        ForeignKey("servicio.id"), nullable=True)
+    servicio: Mapped["Servicio"] = relationship(foreign_keys=[servicio_id])
+
+    # PaquetePacienteSesion aun no existe en el repo -- se agrega la FK real
+    # cuando esa tabla aterrice (ver docs/modelo-datos.md).
     paquete_paciente_sesion_id: Mapped[int | None] = mapped_column(
         Integer, nullable=True)
 
@@ -280,7 +282,7 @@ class Venta(db.Model):
     cita_id: Mapped[int | None] = mapped_column(
         ForeignKey("cita.id"), nullable=True)
     servicio_id: Mapped[int | None] = mapped_column(
-        Integer, nullable=True)
+        ForeignKey("servicio.id"), nullable=True)
     paquete_paciente_id: Mapped[int | None] = mapped_column(
         ForeignKey("paquete_paciente.id"), nullable=True)
     monto_total: Mapped[float] = mapped_column(Float, nullable=False)

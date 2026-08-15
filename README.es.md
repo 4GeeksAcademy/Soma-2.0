@@ -67,8 +67,9 @@ Cada entorno de Github Codespace tendrá **su propia base de datos**, por lo que
 
 -   Asegúrate de estar usando la versión 20 de node y de que ya hayas instalado y ejecutado correctamente el backend.
 
-1. Instala los paquetes: `$ npm install`
-2. ¡Empieza a codificar! inicia el servidor de desarrollo de webpack `$ npm run start`
+1. En tu `.env` (no en `.env.example`), agrega la variable `VITE_BACKEND_URL=http://localhost:3001` (o la URL pública de tu backend Flask, si no es local). **Sin esto, el front no muestra la app real** — se queda en la pantalla de ayuda del template ("Missing BACKEND_URL env variable") en vez de la landing o el login.
+2. Instala los paquetes: `$ npm install`
+3. ¡Empieza a codificar! inicia el servidor de desarrollo de webpack `$ npm run start`
 
 ## ¡Publica tu sitio web!
 

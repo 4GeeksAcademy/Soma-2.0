@@ -20,12 +20,16 @@ def buscar_choque(campo, valor, fecha_hora, excluir_cita_id=None):
     if valor is None:
         return None
 
+    # La aritmetica va del lado de Python (no "Cita.fecha_hora + timedelta(...)" en el
+    # filtro) a proposito: SQLite no soporta sumar un intervalo a una columna dentro del
+    # SQL -- esa expresion nunca matcheaba nada ahi, aunque en Postgres si funcionaba.
     fin = fecha_hora + timedelta(minutes=DURACION_DEFAULT_MIN)
+    inicio_choque = fecha_hora - timedelta(minutes=DURACION_DEFAULT_MIN)
     query = Cita.query.filter(
         Cita.estado != EstadoCita.CANCELADA,
         getattr(Cita, campo) == valor,
         Cita.fecha_hora < fin,
-        Cita.fecha_hora + timedelta(minutes=DURACION_DEFAULT_MIN) > fecha_hora,
+        Cita.fecha_hora > inicio_choque,
     )
     if excluir_cita_id is not None:
         query = query.filter(Cita.id != excluir_cita_id)

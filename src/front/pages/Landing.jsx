@@ -80,10 +80,7 @@ const confianza = [
 ];
 
 const Badge = ({ tone, text }) => {
-	const toneClasses =
-		tone === "success"
-			? "bg-success-bg text-success-text"
-			: "bg-warning-bg text-warning-text";
+	const toneClasses = tone === "success" ? "bg-success-bg text-success-text" : "bg-warning-bg text-warning-text";
 	return (
 		<span
 			className={`inline-flex items-center gap-[5px] rounded-full px-2.5 py-1 text-[11px] font-bold ${toneClasses}`}
@@ -172,7 +169,8 @@ export const Landing = () => {
 							en <em className="italic font-normal text-cafe">un solo lugar tranquilo.</em>
 						</h1>
 						<p className="mb-8 max-w-[46ch] text-lg text-ink-soft">
-							Agenda, expedientes, inventario y cobros — conectados, para que dejes de perseguir papeles y vuelvas a lo que sabes hacer: cuidar pacientes.
+							Agenda, expedientes, inventario y cobros — conectados, para que dejes de perseguir papeles y vuelvas a lo
+							que sabes hacer: cuidar pacientes.
 						</p>
 						<div className="flex flex-wrap items-center gap-4">
 							<a
@@ -218,9 +216,12 @@ export const Landing = () => {
 					<div className="mx-auto max-w-[1160px] px-8 sm:px-5">
 						<div className="mb-[52px] max-w-[620px]">
 							<div className="mb-3.5 text-[11px] font-bold uppercase tracking-[0.14em] text-cafe">El problema real</div>
-							<h2 className="mb-3.5 text-[34px] -tracking-[0.01em]">El caos no se ve en la sala de espera. Se ve al cerrar.</h2>
+							<h2 className="mb-3.5 text-[34px] -tracking-[0.01em]">
+								El caos no se ve en la sala de espera. Se ve al cerrar.
+							</h2>
 							<p className="max-w-[58ch] text-base text-ink-soft">
-								Tres agendas distintas, un cuaderno de inventario y un Excel de comisiones que nadie actualiza a tiempo — es el precio invisible de crecer sin un sistema.
+								Tres agendas distintas, un cuaderno de inventario y un Excel de comisiones que nadie actualiza a tiempo
+								— es el precio invisible de crecer sin un sistema.
 							</p>
 						</div>
 
@@ -299,7 +300,8 @@ export const Landing = () => {
 								Soma la cuida igual.
 							</h2>
 							<p className="max-w-[58ch] text-base text-ink-soft">
-								Expedientes clínicos y consentimientos firmados no son un formulario más — son la parte más sensible de tu negocio. Cada uno queda con fecha, hora, y visible solo para quien debe verlo.
+								Expedientes clínicos y consentimientos firmados no son un formulario más — son la parte más sensible de
+								tu negocio. Cada uno queda con fecha, hora, y visible solo para quien debe verlo.
 							</p>
 						</div>
 

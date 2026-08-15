@@ -28,8 +28,8 @@ export const OlvidePassword = () => {
 			<AuthLayout>
 				<h1 className="mb-1 text-2xl">Revisa tu correo</h1>
 				<p className="mb-7 text-[14.5px] text-ink-soft">
-					Si <span className="font-semibold text-ink">{email}</span> tiene una cuenta en Soma, te enviamos un link
-					para restablecer tu contraseña. Es válido por 1 hora.
+					Si <span className="font-semibold text-ink">{email}</span> tiene una cuenta en Soma, te enviamos un link para
+					restablecer tu contraseña. Es válido por 1 hora.
 				</p>
 				<Link
 					to="/login"

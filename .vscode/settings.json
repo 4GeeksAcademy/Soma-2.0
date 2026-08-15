@@ -5,6 +5,12 @@
         "*.md": "vscode.markdown.preview.editor"
     },
     "[javascriptreact]": {
-        "editor.defaultFormatter": "vscode.typescript-language-features"
-    }
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8"
+    },
+    "autopep8.args": [
+        "--global-config=${workspaceFolder}/pycodestyle.cfg"
+    ]
 }
