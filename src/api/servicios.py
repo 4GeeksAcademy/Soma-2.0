@@ -1,7 +1,6 @@
 from api.models import Servicio, db
 from api.decorators import rol_requerido
 from flask import Blueprint, jsonify, request
-```python
 
 
 servicios = Blueprint("servicios", __name__, url_prefix="/api/servicios")
@@ -61,6 +60,3 @@ def crear_servicio():
     db.session.commit()
 
     return jsonify(servicio.serialize()), 201
-
-
-```

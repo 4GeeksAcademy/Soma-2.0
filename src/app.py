@@ -26,11 +26,11 @@ static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../dist/')
 app = Flask(__name__)
 origenes_permitidos = os.environ.get(
-    "FRONTEND_URL",
+    os.getenv("FRONTEND_URL"),
     "http://localhost:3000"
 ).split(",")
 
-CORS(app, origins=origenes_permitidos)
+CORS(app)
 app.url_map.strict_slashes = False
 
 # database condiguration

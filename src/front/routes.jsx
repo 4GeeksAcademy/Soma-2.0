@@ -1,4 +1,3 @@
-```jsx
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -62,4 +61,4 @@ export const router = createBrowserRouter(
     </>
   )
 );
-```;
+
