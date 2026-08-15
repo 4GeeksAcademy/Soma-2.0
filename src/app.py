@@ -15,6 +15,7 @@ from api.auth import auth
 from api.espacios import espacios
 from api.citas import citas
 from api.servicios import servicios
+from api.pacientes import pacientes
 from api.usuarios import usuarios
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -74,6 +75,7 @@ app.register_blueprint(auth)
 app.register_blueprint(espacios)
 app.register_blueprint(citas)
 app.register_blueprint(servicios)
+app.register_blueprint(pacientes)
 app.register_blueprint(usuarios)
 
 # Handle/serialize errors like a JSON object
