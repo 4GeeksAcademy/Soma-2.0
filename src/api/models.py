@@ -192,6 +192,7 @@ class HistorialClinico(db.Model):
 # Servicio - Kevin
 # ============================================================
 
+
 class Servicio(db.Model):
     __tablename__ = "servicio"
 
