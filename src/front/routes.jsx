@@ -1,5 +1,4 @@
 ```jsx
-// Import necessary components and functions from react-router-dom.
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -22,11 +21,17 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <>
-      {/* Landing pública en "/" — sister route, fuera del Layout genérico: tiene su propio nav/footer de marca. */}
-      <Route path="/" element={<Landing />} errorElement={<h1>Not found!</h1>} />
+      <Route
+        path="/"
+        element={<Landing />}
+        errorElement={<h1>Not found!</h1>}
+      />
 
-      {/* Login — misma razón que Landing: chrome propio, no el Navbar/Footer boilerplate. */}
-      <Route path="/login" element={<Login />} errorElement={<h1>Not found!</h1>} />
+      <Route
+        path="/login"
+        element={<Login />}
+        errorElement={<h1>Not found!</h1>}
+      />
 
       <Route
         path="/olvide-password"
@@ -34,23 +39,19 @@ export const router = createBrowserRouter(
         errorElement={<h1>Not found!</h1>}
       />
 
-      {/* Path exacto esperado por el link del correo -- ver src/api/auth.py::_enviar_email_reset */}
       <Route
         path="/restablecer-password"
         element={<RestablecerPassword />}
         errorElement={<h1>Not found!</h1>}
       />
 
-      {/* App autenticada bajo /app: ProtectedRoute exige sesión antes de mostrar el Layout compartido. */}
       <Route
         path="/app"
         element={<ProtectedRoute />}
         errorElement={<h1>Not found!</h1>}
       >
         <Route element={<Layout />}>
-          {/* Sin Dashboard real todavía -- redirige a Agenda. */}
           <Route index element={<Navigate to="/app/agenda" replace />} />
-
           <Route path="single/:theId" element={<Single />} />
           <Route path="demo" element={<Demo />} />
           <Route path="espacios" element={<Espacios />} />
