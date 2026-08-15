@@ -2,9 +2,9 @@ from datetime import datetime, date, timedelta
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from sqlalchemy import func
-from api.decorators import rol_requerido, permiso_requerido
-from api.models import db, Pago, Venta, Cita, EstadoCita
-from api.permisos import obtener_matriz_permisos
+from api.decorators import rol_requerido 
+from api.models import db, Pago, Venta, Cita, EstadoCita, Servicio
+
 
 dashboard = Blueprint("dashboard", __name__, url_prefix="/api/dashboard")
 CORS(dashboard)
@@ -20,15 +20,18 @@ def _obtener_ingresos_hoy(inicio_hoy, fin_hoy):
 
 
   # Calcular servicios mas vendidos por filtro de fecha
+
 def _obtener_servicios_top(inicio_fecha, fin_fecha, limite=5):
         stmt = (
             db.select(
                 Venta.servicio_id,
+                Servicio.nombre.label("servicio_nombre"),
                 func.count(Venta.id).label("conteo"),
                 func.sum(Venta.monto_total).label("total_monto")
             )
+            .outerjoin(Servicio, Venta.servicio_id == Servicio.id)
             .where(Venta.fecha >= inicio_fecha, Venta.fecha <= fin_fecha, Venta.servicio_id.isnot(None))
-            .group_by(Venta.servicio_id)
+            .group_by(Venta.servicio_id, Servicio.nombre)
             .order_by(func.count(Venta.id).desc())
             .limit(limite)
         )
@@ -36,11 +39,11 @@ def _obtener_servicios_top(inicio_fecha, fin_fecha, limite=5):
         return [
             {
                 "servicio_id": s_id,
-                "nombre": f"Servicio #{s_id}",
+                "nombre": s_nombre or f"Servicio #{s_id}",
                 "ventas_count": conteo,
                 "monto_total": round(total or 0.0, 2)
             }
-            for s_id, conteo, total in resultados
+            for s_id, s_nombre, conteo, total in resultados
         ]
 
 #Citas pendientes por dia y semana
