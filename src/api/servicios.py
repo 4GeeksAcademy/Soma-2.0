@@ -6,6 +6,14 @@ from flask import Blueprint, jsonify, request
 servicios = Blueprint("servicios", __name__, url_prefix="/api/servicios")
 
 
+@servicios.route("", methods=["GET"])
+@rol_requerido("admin", "asistente")
+def listar_servicios():
+    """Admin y Asistente listan servicios -- lo necesitan para seleccionar el
+    servicio al agendar una cita (mismo criterio que GET /api/usuarios)."""
+    return jsonify([s.serialize() for s in Servicio.query.all()])
+
+
 @servicios.route("", methods=["POST"])
 @rol_requerido("admin", "asistente")
 def crear_servicio():
