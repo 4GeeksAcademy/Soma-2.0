@@ -1,7 +1,8 @@
+```python
 from flask import Blueprint, jsonify, request
 
 from api.decorators import rol_requerido
-from api.models import Servicio, db
+from api.models import Cita, Servicio, Venta, db
 
 
 servicios = Blueprint("servicios", __name__, url_prefix="/api/servicios")
@@ -136,9 +137,18 @@ def eliminar_servicio(servicio_id):
     if servicio is None:
         return jsonify(error="Servicio no encontrado"), 404
 
+    if (
+        Cita.query.filter_by(servicio_id=servicio_id).first()
+        or Venta.query.filter_by(servicio_id=servicio_id).first()
+    ):
+        return jsonify(
+            error="No se puede eliminar, el servicio tiene historial asociado"
+        ), 409
+
     db.session.delete(servicio)
     db.session.commit()
 
     return jsonify(
         mensaje="Servicio eliminado correctamente"
     ), 200
+```
