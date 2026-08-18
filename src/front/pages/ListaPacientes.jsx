@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { obtenerPacientes } from "../services/pacientes";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 
 export const ListaPacientes = () => {
+	const { store } = useGlobalReducer();
+
 	// 1. Estados
 	const [pacientes, setPacientes] = useState([]);
 	const [busqueda, setBusqueda] = useState("");
@@ -10,8 +13,7 @@ export const ListaPacientes = () => {
 	useEffect(() => {
 		const cargarPacientes = async () => {
 			try {
-				const token = localStorage.getItem("soma_token");
-				const data = await obtenerPacientes(token);
+				const data = await obtenerPacientes(store.token);
 
 				setPacientes(data.pacientes || data || []);
 			} catch (error) {
@@ -22,7 +24,7 @@ export const ListaPacientes = () => {
 		};
 
 		cargarPacientes();
-	}, []);
+	}, [store.token]);
 
 	const pacientesFiltrados = pacientes.filter(
 		(p) =>
@@ -31,14 +33,18 @@ export const ListaPacientes = () => {
 			p.telefono.includes(busqueda)
 	);
 
+	const puedeCrearPaciente = store.usuario?.rol !== "especialista";
+
 	return (
 		<div className="p-8 bg-paper min-h-screen font-body text-ink">
 			<div className="max-w-6xl mx-auto">
 				<div className="flex justify-between items-center mb-8">
 					<h1 className="text-3xl font-display font-bold text-cafe">Directorio de Pacientes</h1>
-					<button className="bg-cafe text-paper px-6 py-2 rounded-full font-medium shadow-soft hover:bg-cafe-soft transition-colors">
-						+ Nuevo Paciente
-					</button>
+					{puedeCrearPaciente && (
+						<button className="bg-cafe text-paper px-6 py-2 rounded-full font-medium shadow-soft hover:bg-cafe-soft transition-colors">
+							+ Nuevo Paciente
+						</button>
+					)}
 				</div>
 
 				<div className="bg-white p-4 rounded-lg shadow-card mb-6">
