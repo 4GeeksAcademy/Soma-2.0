@@ -1,4 +1,4 @@
-```python
+python
 from flask import Blueprint, jsonify, request
 
 from api.decorators import rol_requerido
