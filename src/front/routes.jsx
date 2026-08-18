@@ -1,41 +1,44 @@
 // Import necessary components and functions from react-router-dom.
-import { createBrowserRouter, createRoutesFromElements, Route } from "react-router-dom";
-import { Layout } from "./pages/Layout";
-import { Landing } from "./pages/Landing";
-import { Login } from "./pages/Login";
-import { OlvidePassword } from "./pages/OlvidePassword";
-import { RestablecerPassword } from "./pages/RestablecerPassword";
-import { Single } from "./pages/Single";
-import { Demo } from "./pages/Demo";
-import { Espacios } from "./pages/Espacios";
-import { Agenda } from "./pages/Agenda";
-import { DashboardAdmin } from "./pages/DashboardAdmin";
-import { AppIndexRedirect } from "./components/AppIndexRedirect";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+    import { createBrowserRouter, createRoutesFromElements, Route } from "react-router-dom";
+    import { Layout } from "./pages/Layout";
+    import { Landing } from "./pages/Landing";
+    import { Login } from "./pages/Login";
+    import { OlvidePassword } from "./pages/OlvidePassword";
+    import { RestablecerPassword } from "./pages/RestablecerPassword";
+    import { Single } from "./pages/Single";
+    import { Demo } from "./pages/Demo";
+    import { Espacios } from "./pages/Espacios";
+    import { Agenda } from "./pages/Agenda";
+    import { NuevoServicio } from "./pages/NuevoServicio";
+    import { DashboardAdmin } from "./pages/DashboardAdmin";
+    import { AppIndexRedirect } from "./components/AppIndexRedirect";
+    import { ProtectedRoute } from "./components/ProtectedRoute";
 
-export const router = createBrowserRouter(
-	createRoutesFromElements(
-		<>
-			{/* Landing pública */}
-			<Route path="/" element={<Landing />} errorElement={<h1>Not found!</h1>} />
+    export const router = createBrowserRouter(
+        createRoutesFromElements(
+            <>
+                {/* Landing pública */}
+                <Route path="/" element={<Landing />} errorElement={<h1>Not found!</h1>} />
 
-			{/* Auth */}
-			<Route path="/login" element={<Login />} errorElement={<h1>Not found!</h1>} />
-			<Route path="/olvide-password" element={<OlvidePassword />} errorElement={<h1>Not found!</h1>} />
-			<Route path="/restablecer-password" element={<RestablecerPassword />} errorElement={<h1>Not found!</h1>} />
+                {/* Auth */}
+                <Route path="/login" element={<Login />} errorElement={<h1>Not found!</h1>} />
+                <Route path="/olvide-password" element={<OlvidePassword />} errorElement={<h1>Not found!</h1>} />
+                <Route path="/restablecer-password" element={<RestablecerPassword />} errorElement={<h1>Not
+found!</h1>} />
 
-			{/* App Autenticada */}
-			<Route path="/app" element={<ProtectedRoute />} errorElement={<h1>Not found!</h1>}>
-				<Route element={<Layout />}>
-					{/* Redirección inteligente por rol: Admin -> Dashboard | Asistente/Especialista -> Agenda */}
-					<Route index element={<AppIndexRedirect />} />
-					<Route path="dashboard" element={<DashboardAdmin />} />
-					<Route path="agenda" element={<Agenda />} />
-					<Route path="espacios" element={<Espacios />} />
-					<Route path="single/:theId" element={<Single />} />
-					<Route path="demo" element={<Demo />} />
-				</Route>
-			</Route>
-		</>
-	)
-);
+                {/* App Autenticada */}
+                <Route path="/app" element={<ProtectedRoute />} errorElement={<h1>Not found!</h1>}>
+                    <Route element={<Layout />}>
+                        {/* Redirección inteligente por rol: Admin -> Dashboard | Asistente/Especialista -> Agenda */}
+                        <Route index element={<AppIndexRedirect />} />
+                        <Route path="dashboard" element={<DashboardAdmin />} />
+                        <Route path="agenda" element={<Agenda />} />
+                        <Route path="espacios" element={<Espacios />} />
+                        <Route path="nuevo-servicio" element={<NuevoServicio />} />
+                        <Route path="single/:theId" element={<Single />} />
+                        <Route path="demo" element={<Demo />} />
+                    </Route>
+                </Route>
+            </>
+        )
+    );

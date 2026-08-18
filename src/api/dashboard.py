@@ -10,7 +10,7 @@ dashboard = Blueprint("dashboard", __name__, url_prefix="/api/dashboard")
 CORS(dashboard)
 
  # Calcular ingresos del dia
-def _obtener_ingresos_hoy(inicio_hoy, fin_hoy):
+def _obtener_ingresos_periodo(inicio_hoy, fin_hoy):
         stmt = db.select(Pago).where(Pago.fecha >= inicio_hoy, Pago.fecha <= fin_hoy)
         pagos_hoy = db.session.scalars(stmt).all()
         return {
@@ -87,6 +87,7 @@ def obtener_resumen_admin():
 
     try:
         PRESETS = {
+            "hoy": today,  
             "semana": today - timedelta(days=today.weekday()),
             "mes": date(today.year, today.month, 1),
             }
@@ -116,7 +117,7 @@ def obtener_resumen_admin():
                 "desde": d_desde.isoformat(),
                 "hasta": d_hasta.isoformat()
             },
-            "ingresos": _obtener_ingresos_hoy(inicio_fecha, fin_fecha),
+            "ingresos": _obtener_ingresos_periodo(inicio_fecha, fin_fecha),
             "servicios_top": _obtener_servicios_top(inicio_fecha, fin_fecha),
             "citas_pendientes_hoy": _obtener_citas_pendientes(inicio_hoy, fin_hoy),
             "citas_pendientes_semana": _obtener_citas_pendientes(inicio_semana, fin_hoy)  

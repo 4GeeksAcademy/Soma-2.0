@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 from api.utils import APIException, generate_sitemap
 from api.models import db
 from api.extensions import mail
@@ -13,6 +14,8 @@ from api.routes import api
 from api.auth import auth
 from api.espacios import espacios
 from api.citas import citas
+from api.servicios import servicios
+from api.pacientes import pacientes
 from api.usuarios import usuarios
 from api.dashboard import dashboard
 from api.admin import setup_admin
@@ -24,6 +27,11 @@ ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../dist/')
 app = Flask(__name__)
+origenes_permitidos = os.environ.get(
+    "FRONTEND_URL", "http://localhost:3000"
+).split(",")
+
+CORS(app, origins=origenes_permitidos)
 app.url_map.strict_slashes = False
 
 # database condiguration
@@ -46,8 +54,10 @@ app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', os.environ.get('MAIL_USERNAME'))
-app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get(
+    'MAIL_DEFAULT_SENDER', os.environ.get('MAIL_USERNAME'))
+app.config['FRONTEND_URL'] = os.environ.get(
+    'FRONTEND_URL', 'http://localhost:3000')
 
 MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
@@ -65,6 +75,8 @@ app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(auth)
 app.register_blueprint(espacios)
 app.register_blueprint(citas)
+app.register_blueprint(servicios)
+app.register_blueprint(pacientes)
 app.register_blueprint(usuarios)
 app.register_blueprint(dashboard)
 
@@ -85,6 +97,8 @@ def sitemap():
     return send_from_directory(static_file_dir, 'index.html')
 
 # any other endpoint will try to serve it like a static file
+
+
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
