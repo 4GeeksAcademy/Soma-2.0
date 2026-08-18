@@ -1,4 +1,3 @@
-python
 from flask import Blueprint, jsonify, request
 
 from api.decorators import rol_requerido
@@ -151,4 +150,4 @@ def eliminar_servicio(servicio_id):
     return jsonify(
         mensaje="Servicio eliminado correctamente"
     ), 200
-```
+
