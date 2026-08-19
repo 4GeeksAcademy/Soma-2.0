@@ -13,3 +13,7 @@ export const crearPaciente = (token, { nombreCompleto, cedula, telefono }) =>
 		headers: authHeaders(token),
 		body: JSON.stringify({ nombre_completo: nombreCompleto, cedula, telefono })
 	});
+	
+// GET /api/pacientes -> Trae la lista de todos los pacientes
+export const obtenerPacientes = (token) => 
+    request("/api/pacientes", { headers: authHeaders(token) });
