@@ -1,7 +1,8 @@
 from functools import wraps
-
 from flask import jsonify
 from flask_jwt_extended import get_jwt, verify_jwt_in_request
+
+
 
 
 def rol_requerido(*roles_permitidos):
@@ -19,3 +20,4 @@ def rol_requerido(*roles_permitidos):
         return wrapper
 
     return decorador
+

@@ -17,6 +17,7 @@ from api.citas import citas
 from api.servicios import servicios
 from api.pacientes import pacientes
 from api.usuarios import usuarios
+from api.dashboard import dashboard
 from api.admin import setup_admin
 from api.commands import setup_commands
 
@@ -30,7 +31,7 @@ origenes_permitidos = os.environ.get(
     "FRONTEND_URL", "http://localhost:3000"
 ).split(",")
 
-CORS(app, origins=origenes_permitidos)
+
 app.url_map.strict_slashes = False
 
 # database condiguration
@@ -77,7 +78,9 @@ app.register_blueprint(citas)
 app.register_blueprint(servicios)
 app.register_blueprint(pacientes)
 app.register_blueprint(usuarios)
+app.register_blueprint(dashboard)
 
+CORS(app, origins=origenes_permitidos)
 # Handle/serialize errors like a JSON object
 
 
