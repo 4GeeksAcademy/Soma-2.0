@@ -8,7 +8,6 @@ Flask commands are usefull to run cronjobs or tasks outside of the API but sill 
 with youy database, for example: Import the price of bitcoin every night as 12am
 """
 def setup_commands(app):
-
     """
     Crea el primer usuario Admin (no hay auto-registro público, ver docs/decisiones.md).
     Uso: $ flask seed-admin --email admin@soma.dev --password "algo" --nombre "Admin"
