@@ -31,7 +31,7 @@ origenes_permitidos = os.environ.get(
     "FRONTEND_URL", "http://localhost:3000"
 ).split(",")
 
-CORS(app, origins=origenes_permitidos)
+
 app.url_map.strict_slashes = False
 
 # database condiguration
@@ -80,6 +80,7 @@ app.register_blueprint(pacientes)
 app.register_blueprint(usuarios)
 app.register_blueprint(dashboard)
 
+CORS(app, origins=origenes_permitidos)
 # Handle/serialize errors like a JSON object
 
 

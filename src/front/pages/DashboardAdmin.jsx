@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { obtenerResumenDashboard } from "../services/dashboard.js";
 import { Navigate } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
 
 const formatMoney = (amount) => {
 	return new Intl.NumberFormat("en-US", {
@@ -129,7 +130,7 @@ export const DashboardAdmin = () => {
 							Fechas
 						</button>
 						<button onClick={cargarDashboard} disabled={cargando} className="p-1.5 text-ink-soft hover:text-cafe ml-1">
-							🔄
+							<RefreshCw className="w-4 h-4" />
 						</button>
 					</div>
 				</div>

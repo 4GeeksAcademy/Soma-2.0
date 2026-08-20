@@ -107,6 +107,7 @@ def obtener_resumen_admin():
     inicio_hoy = datetime.combine(today, datetime.min.time())
     fin_hoy = datetime.combine(today, datetime.max.time())
     inicio_semana = datetime.combine(today - timedelta(days=today.weekday()), datetime.min.time())
+    fin_semana = datetime.combine(today - timedelta(days=today.weekday()) + timedelta(days=6), datetime.max.time())
 
 
 
@@ -120,7 +121,7 @@ def obtener_resumen_admin():
             "ingresos": _obtener_ingresos_periodo(inicio_fecha, fin_fecha),
             "servicios_top": _obtener_servicios_top(inicio_fecha, fin_fecha),
             "citas_pendientes_hoy": _obtener_citas_pendientes(inicio_hoy, fin_hoy),
-            "citas_pendientes_semana": _obtener_citas_pendientes(inicio_semana, fin_hoy)  
+            "citas_pendientes_semana": _obtener_citas_pendientes(inicio_semana, fin_semana)  
 
 
         }), 200
