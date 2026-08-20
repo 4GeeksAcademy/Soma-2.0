@@ -15,7 +15,6 @@ import { NuevoServicio } from "./pages/NuevoServicio";
 import { ListaPacientes } from "./pages/ListaPacientes";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-
 export const router = createBrowserRouter(
 	createRoutesFromElements(
 		<>
@@ -37,14 +36,8 @@ export const router = createBrowserRouter(
 					<Route path="agenda" element={<Agenda />} />
 					<Route path="pacientes" element={<ListaPacientes />} />
 					<Route path="nuevo-servicio" element={<NuevoServicio />} />
-
-					
-
-
 				</Route>
 			</Route>
 		</>
 	)
 );
-
-    
