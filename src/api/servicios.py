@@ -158,4 +158,3 @@ def eliminar_servicio(servicio_id):
     return jsonify(
         mensaje="Servicio eliminado correctamente"
     ), 200
-
