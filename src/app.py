@@ -20,6 +20,7 @@ from api.usuarios import usuarios
 from api.dashboard import dashboard
 from api.admin import setup_admin
 from api.commands import setup_commands
+from api.ventas import ventas
 
 # from models import Person
 
