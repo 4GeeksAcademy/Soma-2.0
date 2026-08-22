@@ -190,10 +190,10 @@ class HistorialClinico(db.Model):
             "foto_despues_url": self.foto_despues_url,
         }
 
+
 # ============================================================
 # Servicio - Kevin
 # ============================================================
-
 
 class Servicio(db.Model):
     __tablename__ = "servicio"
@@ -215,6 +215,64 @@ class Servicio(db.Model):
         }
 
 
+# ============================================================
+# Paquete
+# ============================================================
+
+class Paquete(db.Model):
+    __tablename__ = "paquete"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(120), nullable=False)
+    precio_total: Mapped[float] = mapped_column(Float, nullable=False)
+
+    servicios: Mapped[list["PaqueteServicio"]] = relationship(
+        back_populates="paquete",
+        cascade="all, delete-orphan"
+    )
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "precio_total": self.precio_total,
+        }
+
+
+# ============================================================
+# PaqueteServicio
+# Detalle de servicios incluidos en un paquete
+# ============================================================
+
+class PaqueteServicio(db.Model):
+    __tablename__ = "paquete_servicio"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    paquete_id: Mapped[int] = mapped_column(
+        ForeignKey("paquete.id"), nullable=False)
+
+    servicio_id: Mapped[int] = mapped_column(
+        ForeignKey("servicio.id"), nullable=False)
+
+    num_sesiones: Mapped[int] = mapped_column(
+        Integer, nullable=False)
+
+    paquete: Mapped["Paquete"] = relationship(
+        back_populates="servicios"
+    )
+
+    servicio: Mapped["Servicio"] = relationship()
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "paquete_id": self.paquete_id,
+            "servicio_id": self.servicio_id,
+            "num_sesiones": self.num_sesiones,
+        }
+
+
 # Tabla/entidad paquete paciente instancia de paquete comprado por un paciente
 
 class FormaPagoPaquete(str, enum.Enum):
@@ -233,7 +291,7 @@ class PaquetePaciente(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     paciente_id: Mapped[int] = mapped_column(Integer, nullable=False)
     paquete_id: Mapped[int | None] = mapped_column(
-        Integer, nullable=True)
+        ForeignKey("paquete.id"), nullable=True)
     fecha_compra: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False)
     forma_pago: Mapped[FormaPagoPaquete] = mapped_column(
