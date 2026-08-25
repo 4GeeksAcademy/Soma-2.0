@@ -15,6 +15,7 @@ from api.auth import auth
 from api.espacios import espacios
 from api.citas import citas
 from api.servicios import servicios
+from api.paquetes import paquetes
 from api.pacientes import pacientes
 from api.usuarios import usuarios
 from api.dashboard import dashboard
@@ -76,6 +77,7 @@ app.register_blueprint(auth)
 app.register_blueprint(espacios)
 app.register_blueprint(citas)
 app.register_blueprint(servicios)
+app.register_blueprint(paquetes)
 app.register_blueprint(pacientes)
 app.register_blueprint(usuarios)
 app.register_blueprint(dashboard)
