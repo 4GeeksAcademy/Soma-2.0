@@ -223,7 +223,9 @@ class Paquete(db.Model):
     __tablename__ = "paquete"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    nombre: Mapped[str] = mapped_column(String(120), nullable=False)
+    nombre: Mapped[str] = mapped_column(
+        String(120), nullable=False, unique=True
+    )
     precio_total: Mapped[float] = mapped_column(Float, nullable=False)
 
     servicios: Mapped[list["PaqueteServicio"]] = relationship(
@@ -352,13 +354,8 @@ class Venta(db.Model):
         cascade="all, delete-orphan"
     )
 
-    # utilizo el property para que cada vez que se abone a una deuda
-    # no debamos actualizarlo manualmente, python calcula al instante
-    # el monto total
-
     @property
     def monto_abonado(self) -> float:
-        # suma de todos los abonos o pagos realizados por la venta
         return sum(pago.monto for pago in self.pagos) if self.pagos else 0.0
 
     @property

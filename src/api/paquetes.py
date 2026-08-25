@@ -42,7 +42,9 @@ def crear_paquete():
         ), 400
 
     # Evitar nombres duplicados
-    paquete_existente = Paquete.query.filter_by(nombre=nombre).first()
+    paquete_existente = db.session.scalars(
+        db.select(Paquete).where(Paquete.nombre == nombre)
+    ).first()
 
     if paquete_existente:
         return jsonify(
@@ -66,12 +68,18 @@ def crear_paquete():
                 error="Cada servicio requiere servicio_id y num_sesiones"
             ), 400
 
+        # Validar servicio_id
         try:
             servicio_id = int(servicio_id)
-            num_sesiones = int(num_sesiones)
         except (TypeError, ValueError):
             return jsonify(
-                error="servicio_id y num_sesiones deben ser numéricos"
+                error="servicio_id debe ser numérico"
+            ), 400
+
+        # Validar que num_sesiones sea un entero real
+        if isinstance(num_sesiones, bool) or not isinstance(num_sesiones, int):
+            return jsonify(
+                error="num_sesiones debe ser un número entero"
             ), 400
 
         if num_sesiones <= 0:
