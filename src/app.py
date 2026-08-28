@@ -19,8 +19,10 @@ from api.paquetes import paquetes
 from api.pacientes import pacientes
 from api.usuarios import usuarios
 from api.dashboard import dashboard
+from api.ventas import ventas 
 from api.admin import setup_admin
 from api.commands import setup_commands
+from api.ventas import ventas
 
 # from models import Person
 
@@ -81,6 +83,7 @@ app.register_blueprint(paquetes)
 app.register_blueprint(pacientes)
 app.register_blueprint(usuarios)
 app.register_blueprint(dashboard)
+app.register_blueprint(ventas)
 
 CORS(app, origins=origenes_permitidos)
 # Handle/serialize errors like a JSON object
