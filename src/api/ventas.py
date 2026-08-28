@@ -23,7 +23,7 @@ def listar_ventas():
     if paciente_id:
         stmt = stmt.where(Venta.paciente_id == paciente_id)
 
-        todas_ventas = db.session.scalars(stmt).all()
+    todas_ventas = db.session.scalars(stmt).all()
 
     if con_deuda:
             todas_ventas = [v for v in todas_ventas if v.deuda_pendiente > 0]
