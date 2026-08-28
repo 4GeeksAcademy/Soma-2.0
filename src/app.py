@@ -19,10 +19,9 @@ from api.paquetes import paquetes
 from api.pacientes import pacientes
 from api.usuarios import usuarios
 from api.dashboard import dashboard
-from api.ventas import ventas 
+from api.ventas import ventas
 from api.admin import setup_admin
 from api.commands import setup_commands
-from api.ventas import ventas
 
 # from models import Person
 
