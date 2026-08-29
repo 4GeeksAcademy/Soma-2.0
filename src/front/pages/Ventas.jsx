@@ -129,11 +129,11 @@ export const Ventas = () => {
 		try {
 			const payload = {
 				paciente_id: Number(pacienteId),
-        		servicio_id: Number(servicioId),
-        		monto_total: montoFinalTotal,
-        		pago_monto: montoFinalPago,
-        		pago_metodo: metodoPago
-    	};
+				servicio_id: Number(servicioId),
+				monto_total: montoFinalTotal,
+				pago_monto: montoFinalPago,
+				pago_metodo: metodoPago
+			};
 
 			await registrarVenta(token, payload);
 

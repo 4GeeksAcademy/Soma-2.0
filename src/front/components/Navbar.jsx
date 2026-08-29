@@ -27,8 +27,8 @@ export const Navbar = () => {
 						Agenda
 					</NavLink>
 					<NavLink to="/app/ventas" className={linkClass}>
-                        Ventas
-                    </NavLink>
+						Ventas
+					</NavLink>
 					{store.usuario?.rol === "admin" ? (
 						<NavLink to="/app/espacios" className={linkClass}>
 							Espacios
