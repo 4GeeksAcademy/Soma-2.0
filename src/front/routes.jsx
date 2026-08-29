@@ -9,6 +9,7 @@ import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { Espacios } from "./pages/Espacios";
 import { Agenda } from "./pages/Agenda";
+import { Ventas } from "./pages/Ventas";
 import { DashboardAdmin } from "./pages/DashboardAdmin";
 import { AppIndexRedirect } from "./components/AppIndexRedirect";
 import { NuevoServicio } from "./pages/NuevoServicio";
@@ -36,6 +37,7 @@ export const router = createBrowserRouter(
 					<Route path="agenda" element={<Agenda />} />
 					<Route path="pacientes" element={<ListaPacientes />} />
 					<Route path="nuevo-servicio" element={<NuevoServicio />} />
+					<Route path="ventas" element={<Ventas />} />
 				</Route>
 			</Route>
 		</>
