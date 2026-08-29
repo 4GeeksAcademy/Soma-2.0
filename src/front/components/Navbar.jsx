@@ -22,6 +22,21 @@ export const Navbar = () => {
 					Soma
 				</Link>
 
+				
+				<div className="flex items-center gap-1">
+					<NavLink to="/app/agenda" className={linkClass}>
+						Agenda
+					</NavLink>
+					<NavLink to="/app/ventas" className={linkClass}>
+						Ventas
+					</NavLink>
+					{store.usuario?.rol === "admin" ? (
+						<NavLink to="/app/espacios" className={linkClass}>
+							Espacios
+						</NavLink>
+					) : null}
+				</div>
+
 				<div className="flex items-center gap-1">
 					<NavLink to="/app/agenda" className={linkClass}>
 						Agenda
