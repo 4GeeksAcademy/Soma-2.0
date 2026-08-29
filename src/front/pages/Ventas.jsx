@@ -129,13 +129,11 @@ export const Ventas = () => {
 		try {
 			const payload = {
 				paciente_id: Number(pacienteId),
-				servicio_id: Number(servicioId),
-				monto_total: montoFinalTotal,
-				monto_pago: montoFinalPago,
-				monto: montoFinalPago,
-				metodo: metodoPago,
-				metodo_pago: metodoPago
-			};
+        		servicio_id: Number(servicioId),
+        		monto_total: montoFinalTotal,
+        		pago_monto: montoFinalPago,
+        		pago_metodo: metodoPago
+    	};
 
 			await registrarVenta(token, payload);
 
@@ -202,7 +200,7 @@ export const Ventas = () => {
 									<option value="">-- Seleccionar Paciente --</option>
 									{pacientes.map((p) => (
 										<option key={p.id} value={p.id}>
-											{p.nombre_completo} {p.cedula ? `(Céd: ${p.cedula})` : ""}
+											{p.nombre_completo} {p.telefono ? `(Céd: ${p.telefono})` : ""}
 										</option>
 									))}
 								</select>
