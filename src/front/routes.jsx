@@ -16,7 +16,6 @@ import { NuevoServicio } from "./pages/NuevoServicio";
 import { ListaPacientes } from "./pages/ListaPacientes";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-
 export const router = createBrowserRouter(
 	createRoutesFromElements(
 		<>

@@ -22,7 +22,6 @@ export const Navbar = () => {
 					Soma
 				</Link>
 
-				
 				<div className="flex items-center gap-1">
 					<NavLink to="/app/agenda" className={linkClass}>
 						Agenda
