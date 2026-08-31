@@ -14,6 +14,7 @@ import { DashboardAdmin } from "./pages/DashboardAdmin";
 import { AppIndexRedirect } from "./components/AppIndexRedirect";
 import { NuevoServicio } from "./pages/NuevoServicio";
 import { ListaPacientes } from "./pages/ListaPacientes";
+import { NuevoPaciente } from "./pages/NuevoPaciente";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter(
@@ -36,6 +37,7 @@ export const router = createBrowserRouter(
 					<Route path="espacios" element={<Espacios />} />
 					<Route path="agenda" element={<Agenda />} />
 					<Route path="pacientes" element={<ListaPacientes />} />
+					<Route path="pacientes/nuevo" element={<NuevoPaciente />} />
 					<Route path="nuevo-servicio" element={<NuevoServicio />} />
 					<Route path="ventas" element={<Ventas />} />
 				</Route>
