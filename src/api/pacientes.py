@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 
-from api.decorators import rol_requerido
+from api.decorators import clinica_id_actual, rol_requerido
 from api.models import Paciente, db
 
 pacientes = Blueprint("pacientes", __name__, url_prefix="/api/pacientes")
@@ -17,7 +17,7 @@ def listar_pacientes():
     formulario de agendado (issue #7)."""
     telefono = request.args.get("telefono")
 
-    query = Paciente.query
+    query = Paciente.query.filter_by(clinica_id=clinica_id_actual())
     if telefono:
         query = query.filter_by(telefono=telefono)
 
@@ -27,7 +27,7 @@ def listar_pacientes():
 @pacientes.route("/<int:paciente_id>", methods=["GET"])
 @rol_requerido("admin", "asistente", "especialista")
 def obtener_paciente(paciente_id):
-    paciente = Paciente.query.get_or_404(paciente_id)
+    paciente = Paciente.query.filter_by(id=paciente_id, clinica_id=clinica_id_actual()).first_or_404()
     return jsonify(paciente.serialize())
 
 
@@ -42,10 +42,12 @@ def crear_paciente():
     if not nombre_completo or not cedula or not telefono:
         return jsonify(error="nombre_completo, cedula y telefono son requeridos"), 400
 
-    if Paciente.query.filter_by(telefono=telefono).first():
+    clinica_id = clinica_id_actual()
+
+    if Paciente.query.filter_by(clinica_id=clinica_id, telefono=telefono).first():
         return jsonify(error="ya existe un paciente con ese telefono"), 409
 
-    if Paciente.query.filter_by(cedula=cedula).first():
+    if Paciente.query.filter_by(clinica_id=clinica_id, cedula=cedula).first():
         return jsonify(error="ya existe un paciente con esa cedula"), 409
 
     edad = data.get("edad")
@@ -56,6 +58,7 @@ def crear_paciente():
             return jsonify(error="edad debe ser numerica"), 400
 
     paciente = Paciente(
+        clinica_id=clinica_id,
         nombre_completo=nombre_completo,
         cedula=cedula,
         telefono=telefono,
@@ -72,17 +75,18 @@ def crear_paciente():
 @pacientes.route("/<int:paciente_id>", methods=["PUT"])
 @rol_requerido("admin", "asistente")
 def actualizar_paciente(paciente_id):
-    paciente = Paciente.query.get_or_404(paciente_id)
+    clinica_id = clinica_id_actual()
+    paciente = Paciente.query.filter_by(id=paciente_id, clinica_id=clinica_id).first_or_404()
     data = request.get_json(silent=True) or {}
 
     nuevo_telefono = data.get("telefono", paciente.telefono)
     if nuevo_telefono != paciente.telefono:
-        if Paciente.query.filter_by(telefono=nuevo_telefono).first():
+        if Paciente.query.filter_by(clinica_id=clinica_id, telefono=nuevo_telefono).first():
             return jsonify(error="ya existe un paciente con ese telefono"), 409
 
     nueva_cedula = data.get("cedula", paciente.cedula)
     if nueva_cedula != paciente.cedula:
-        if Paciente.query.filter_by(cedula=nueva_cedula).first():
+        if Paciente.query.filter_by(clinica_id=clinica_id, cedula=nueva_cedula).first():
             return jsonify(error="ya existe un paciente con esa cedula"), 409
 
     edad = data.get("edad", paciente.edad)

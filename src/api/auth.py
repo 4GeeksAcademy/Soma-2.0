@@ -7,7 +7,7 @@ from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt
 from flask_mail import Message
 
 from api.extensions import mail
-from api.models import Usuario, db
+from api.models import Clinica, Usuario, db
 
 auth = Blueprint("auth", __name__, url_prefix="/api/auth")
 CORS(auth)
@@ -24,18 +24,26 @@ def login():
     if not email or not password:
         return jsonify(error="email y password son requeridos"), 400
 
+    # email es global y unico (#66) -- no hace falta pedir la clinica aparte,
+    # el Usuario encontrado ya trae su propio clinica_id.
     usuario = Usuario.query.filter_by(email=email).first()
 
     if not usuario or not usuario.activo or not usuario.check_password(password):
         return jsonify(error="credenciales inválidas"), 401
 
+    clinica = Clinica.query.get(usuario.clinica_id)
+
     access_token = create_access_token(
         identity=str(usuario.id),
-        additional_claims={"rol": usuario.rol.value, "nombre": usuario.nombre},
+        additional_claims={
+            "rol": usuario.rol.value,
+            "nombre": usuario.nombre,
+            "clinica_id": usuario.clinica_id,
+        },
         expires_delta=timedelta(hours=8),
     )
 
-    return jsonify(access_token=access_token, usuario=usuario.serialize())
+    return jsonify(access_token=access_token, usuario=usuario.serialize(), clinica=clinica.serialize())
 
 
 @auth.route("/cambiar-password", methods=["POST"])

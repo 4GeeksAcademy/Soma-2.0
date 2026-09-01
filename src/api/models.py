@@ -2,11 +2,31 @@ import enum
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Float
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Float, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
+
+
+class Clinica(db.Model):
+    __tablename__ = "clinica"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(150), nullable=False)
+    slug: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
+    fecha_registro: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False)
+    activa: Mapped[bool] = mapped_column(
+        Boolean(), default=True, nullable=False)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "slug": self.slug,
+            "activa": self.activa,
+        }
 
 
 class RolUsuario(str, enum.Enum):
@@ -19,9 +39,12 @@ class Usuario(db.Model):
     __tablename__ = "usuario"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
-    email: Mapped[str] = mapped_column(
-        String(120), unique=True, nullable=False)
+    # Global, no por clinica -- el login es solo email+password (sin selector de
+    # clinica), asi que el email tiene que resolver un Usuario sin ambiguedad.
+    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     rol: Mapped[RolUsuario] = mapped_column(Enum(RolUsuario), nullable=False)
     activo: Mapped[bool] = mapped_column(
@@ -53,6 +76,8 @@ class EspacioTrabajo(db.Model):
     __tablename__ = "espacio_trabajo"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     tipo: Mapped[str] = mapped_column(
         String(50), nullable=False)  # sala / cama / estación
@@ -72,6 +97,8 @@ class Cita(db.Model):
     __tablename__ = "cita"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
 
     paciente_id: Mapped[int | None] = mapped_column(
         ForeignKey("paciente.id"), nullable=True)
@@ -118,13 +145,17 @@ class Cita(db.Model):
 
 class Paciente(db.Model):
     __tablename__ = "paciente"
+    __table_args__ = (
+        UniqueConstraint("clinica_id", "telefono", name="uq_paciente_clinica_telefono"),
+        UniqueConstraint("clinica_id", "cedula", name="uq_paciente_clinica_cedula"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
-    cedula: Mapped[str] = mapped_column(
-        String(50), unique=True, nullable=False)
-    telefono: Mapped[str] = mapped_column(
-        String(20), unique=True, nullable=False)
+    cedula: Mapped[str] = mapped_column(String(50), nullable=False)
+    telefono: Mapped[str] = mapped_column(String(20), nullable=False)
     ocupacion: Mapped[str | None] = mapped_column(
         String(120), nullable=True)
     edad: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -165,6 +196,8 @@ class HistorialClinico(db.Model):
     __tablename__ = "historial_clinico"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     paciente_id: Mapped[int] = mapped_column(
         ForeignKey("paciente.id"), nullable=False)
     cita_id: Mapped[int] = mapped_column(
@@ -199,6 +232,8 @@ class Servicio(db.Model):
     __tablename__ = "servicio"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     precio: Mapped[float] = mapped_column(Float, nullable=False)
     duracion_min: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -221,11 +256,14 @@ class Servicio(db.Model):
 
 class Paquete(db.Model):
     __tablename__ = "paquete"
+    __table_args__ = (
+        UniqueConstraint("clinica_id", "nombre", name="uq_paquete_clinica_nombre"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    nombre: Mapped[str] = mapped_column(
-        String(120), nullable=False, unique=True
-    )
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
+    nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     precio_total: Mapped[float] = mapped_column(Float, nullable=False)
 
     servicios: Mapped[list["PaqueteServicio"]] = relationship(
@@ -250,6 +288,8 @@ class PaqueteServicio(db.Model):
     __tablename__ = "paquete_servicio"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
 
     paquete_id: Mapped[int] = mapped_column(
         ForeignKey("paquete.id"), nullable=False)
@@ -291,6 +331,8 @@ class PaquetePaciente(db.Model):
     __tablename__ = "paquete_paciente"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     paciente_id: Mapped[int] = mapped_column(Integer, nullable=False)
     paquete_id: Mapped[int | None] = mapped_column(
         ForeignKey("paquete.id"), nullable=True)
@@ -338,6 +380,8 @@ class Venta(db.Model):
     __tablename__ = "venta"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     paciente_id: Mapped[int] = mapped_column(Integer, nullable=False)
     cita_id: Mapped[int | None] = mapped_column(
         ForeignKey("cita.id"), nullable=True)
@@ -385,6 +429,8 @@ class Pago(db.Model):
     __tablename__ = "pago"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     venta_id: Mapped[int] = mapped_column(
         ForeignKey("venta.id"), nullable=False)
     monto: Mapped[float] = mapped_column(Float, nullable=False)
@@ -415,6 +461,8 @@ class Comision(db.Model):
     __tablename__ = "comision"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     especialista_id: Mapped[int] = mapped_column(
         ForeignKey("usuario.id"), nullable=False)
     venta_id: Mapped[int] = mapped_column(
@@ -448,6 +496,8 @@ class GastoFijo(db.Model):
     __tablename__ = "gasto_fijo"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
     concepto: Mapped[str] = mapped_column(String(200), nullable=False)
     monto: Mapped[float] = mapped_column(Float, nullable=False)
     fecha: Mapped[datetime] = mapped_column(
