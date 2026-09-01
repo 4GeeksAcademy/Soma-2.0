@@ -1,11 +1,13 @@
+import os
 import secrets
 from datetime import datetime, timedelta
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, redirect, request
 from flask_cors import CORS
-from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity, verify_jwt_in_request
 from flask_mail import Message
 
+from api import google_calendar
 from api.extensions import mail
 from api.models import Clinica, Usuario, db
 
@@ -44,6 +46,58 @@ def login():
     )
 
     return jsonify(access_token=access_token, usuario=usuario.serialize(), clinica=clinica.serialize())
+
+
+@auth.route("/google/callback", methods=["GET"])
+def google_calendar_callback():
+    """Callback de OAuth2 para conectar el Google Calendar de una Clinica (#71).
+
+    Vive en el blueprint de auth (no en clinica.py) porque GOOGLE_REDIRECT_URI
+    ya estaba registrado apuntando a esta ruta exacta desde el spike original
+    (ver .env.example) -- cambiar el path implicaria volver a registrar el
+    redirect URI en la consola de Google Cloud.
+
+    El 'state' es el JWT de la sesion del Admin que inicio la conexion (ver
+    api/clinica.py) -- se decodifica aqui para saber a que clinica_id
+    pertenece, ya que esta ruta la visita Google directo (sin header
+    Authorization posible en una redireccion de navegador).
+    """
+    frontend_url = current_app.config.get("FRONTEND_URL", "http://localhost:5173")
+    destino = f"{frontend_url}/app/perfil"
+    code = request.args.get("code")
+    state = request.args.get("state")
+
+    if not code or not state:
+        return redirect(f"{destino}?google_calendar=error")
+
+    try:
+        claims = decode_token(state)
+    except Exception:
+        return redirect(f"{destino}?google_calendar=error")
+
+    if claims.get("rol") != "admin":
+        return redirect(f"{destino}?google_calendar=error")
+
+    clinica_actual = Clinica.query.get(claims.get("clinica_id"))
+    redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI")
+
+    if not clinica_actual or not redirect_uri:
+        return redirect(f"{destino}?google_calendar=error")
+
+    try:
+        refresh_token, email = google_calendar.intercambiar_codigo(code, redirect_uri)
+    except Exception as error:
+        print(f"[auth] no se pudo intercambiar el codigo de Google Calendar: {error}")
+        return redirect(f"{destino}?google_calendar=error")
+
+    if not refresh_token:
+        return redirect(f"{destino}?google_calendar=error")
+
+    clinica_actual.google_refresh_token = refresh_token
+    clinica_actual.google_cuenta_email = email
+    db.session.commit()
+
+    return redirect(f"{destino}?google_calendar=conectado")
 
 
 @auth.route("/cambiar-password", methods=["POST"])

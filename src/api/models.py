@@ -20,12 +20,20 @@ class Clinica(db.Model):
     activa: Mapped[bool] = mapped_column(
         Boolean(), default=True, nullable=False)
 
+    # Google Calendar (#71) -- refresh_token de la cuenta que el Admin conecto
+    # desde su perfil. Reemplaza el GOOGLE_REFRESH_TOKEN global de una sola
+    # cuenta compartida (ver api/google_calendar.py).
+    google_refresh_token: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    google_cuenta_email: Mapped[str | None] = mapped_column(String(150), nullable=True)
+
     def serialize(self):
         return {
             "id": self.id,
             "nombre": self.nombre,
             "slug": self.slug,
             "activa": self.activa,
+            "google_calendar_conectado": self.google_refresh_token is not None,
+            "google_calendar_cuenta": self.google_cuenta_email,
         }
 
 
