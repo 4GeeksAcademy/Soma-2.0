@@ -18,3 +18,9 @@ def rol_requerido(*roles_permitidos):
         return wrapper
 
     return decorador
+
+
+def clinica_id_actual():
+    """Clinica del usuario autenticado, extraida del JWT (ver clinica_id en api/auth.py)."""
+    verify_jwt_in_request()
+    return get_jwt().get("clinica_id")

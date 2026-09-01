@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from api.decorators import rol_requerido
+from api.decorators import clinica_id_actual, rol_requerido
 from api.models import Cita, Servicio, Venta, db
 
 
@@ -12,7 +12,7 @@ servicios = Blueprint("servicios", __name__, url_prefix="/api/servicios")
 def listar_servicios():
     """Admin y Asistente listan servicios -- lo necesitan para seleccionar el
     servicio al agendar una cita (mismo criterio que GET /api/usuarios)."""
-    return jsonify([s.serialize() for s in Servicio.query.all()])
+    return jsonify([s.serialize() for s in Servicio.query.filter_by(clinica_id=clinica_id_actual()).all()])
 
 
 @servicios.route("", methods=["POST"])
@@ -55,12 +55,14 @@ def crear_servicio():
             error="El porcentaje de comisión debe estar entre 0 y 100"
         ), 400
 
-    servicio_existente = Servicio.query.filter_by(nombre=nombre).first()
+    clinica_id = clinica_id_actual()
+    servicio_existente = Servicio.query.filter_by(clinica_id=clinica_id, nombre=nombre).first()
 
     if servicio_existente:
         return jsonify(error="Ya existe un servicio con ese nombre"), 409
 
     servicio = Servicio(
+        clinica_id=clinica_id,
         nombre=nombre,
         precio=precio,
         duracion_min=duracion_min,
@@ -76,7 +78,8 @@ def crear_servicio():
 @servicios.route("/<int:servicio_id>", methods=["PUT"])
 @rol_requerido("admin")
 def editar_servicio(servicio_id):
-    servicio = db.session.get(Servicio, servicio_id)
+    clinica_id = clinica_id_actual()
+    servicio = Servicio.query.filter_by(id=servicio_id, clinica_id=clinica_id).first()
 
     if servicio is None:
         return jsonify(error="Servicio no encontrado"), 404
@@ -119,6 +122,7 @@ def editar_servicio(servicio_id):
         ), 400
 
     servicio_existente = Servicio.query.filter(
+        Servicio.clinica_id == clinica_id,
         Servicio.nombre == nombre,
         Servicio.id != servicio_id,
     ).first()
@@ -139,7 +143,7 @@ def editar_servicio(servicio_id):
 @servicios.route("/<int:servicio_id>", methods=["DELETE"])
 @rol_requerido("admin")
 def eliminar_servicio(servicio_id):
-    servicio = db.session.get(Servicio, servicio_id)
+    servicio = Servicio.query.filter_by(id=servicio_id, clinica_id=clinica_id_actual()).first()
 
     if servicio is None:
         return jsonify(error="Servicio no encontrado"), 404

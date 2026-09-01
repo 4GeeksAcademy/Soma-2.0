@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
-from api.decorators import rol_requerido
+from api.decorators import clinica_id_actual, rol_requerido
 from api.models import (
     db, Venta, Pago, Paciente, Servicio, Cita,
     PaquetePaciente, FormaPagoPaquete
@@ -17,7 +17,7 @@ def listar_ventas():
     paciente_id = request.args.get("paciente_id", type=int)
     con_deuda = request.args.get("con_deuda", "").lower() in ("true", "1", "yes")
 
-    stmt = db.select(Venta).order_by(Venta.fecha.desc())
+    stmt = db.select(Venta).where(Venta.clinica_id == clinica_id_actual()).order_by(Venta.fecha.desc())
     if paciente_id:
         stmt = stmt.where(Venta.paciente_id == paciente_id)
 
@@ -32,7 +32,7 @@ def listar_ventas():
 @rol_requerido("admin", "asistente")
 # Obtener el detalle de una venta y el historial de pagos
 def obtener_venta(venta_id):
-    venta = db.session.get(Venta, venta_id)
+    venta = Venta.query.filter_by(id=venta_id, clinica_id=clinica_id_actual()).first()
     if not venta:
         return jsonify(error="Venta no encontrada"), 404
     return jsonify(venta.serialize()), 200
@@ -46,12 +46,13 @@ def obtener_venta(venta_id):
 # Si es servicio suelto: permite pago total o abono parcial.
 def registrar_venta():
     data = request.get_json(silent=True) or {}
+    clinica_id = clinica_id_actual()
 
     paciente_id = data.get("paciente_id")
     if not paciente_id:
         return jsonify(error="paciente_id es requerido"), 400
 
-    paciente = db.session.get(Paciente, paciente_id)
+    paciente = Paciente.query.filter_by(id=paciente_id, clinica_id=clinica_id).first()
     if not paciente:
         return jsonify(error="El paciente especificado no existe"), 404
 
@@ -61,17 +62,17 @@ def registrar_venta():
     es_sesion_paquete = data.get("es_sesion_paquete", False)
 
     # Validar cita si viene en el payload
-    if cita_id and not db.session.get(Cita, cita_id):
+    if cita_id and not Cita.query.filter_by(id=cita_id, clinica_id=clinica_id).first():
         return jsonify(error="La cita especificada no existe"), 404
 
     # Validar servicio si viene en el payload
-    if servicio_id and not db.session.get(Servicio, servicio_id):
+    if servicio_id and not Servicio.query.filter_by(id=servicio_id, clinica_id=clinica_id).first():
         return jsonify(error="El servicio especificado no existe"), 404
 
     # 1. Determinar monto total y pago según tipo de venta
     if es_sesion_paquete or paquete_paciente_id:
         paquete_pac = (
-            db.session.get(PaquetePaciente, paquete_paciente_id)
+            PaquetePaciente.query.filter_by(id=paquete_paciente_id, clinica_id=clinica_id).first()
             if paquete_paciente_id
             else None
         )
@@ -90,7 +91,7 @@ def registrar_venta():
         # Venta regular de servicio suelto
         if "monto_total" not in data:
             if servicio_id:
-                serv = db.session.get(Servicio, servicio_id)
+                serv = Servicio.query.filter_by(id=servicio_id, clinica_id=clinica_id).first()
                 monto_total = serv.precio if serv else 0.0
             else:
                 return jsonify(error="monto_total es requerido para servicios sueltos"), 400
@@ -116,6 +117,7 @@ def registrar_venta():
 
     # 2. Crear la Venta
     nueva_venta = Venta(
+        clinica_id=clinica_id,
         paciente_id=paciente_id,
         cita_id=cita_id,
         servicio_id=servicio_id,
@@ -133,6 +135,7 @@ def registrar_venta():
             metodo_pago = "efectivo"
 
         nuevo_pago = Pago(
+            clinica_id=clinica_id,
             venta_id=nueva_venta.id,
             monto=round(pago_monto, 2),
             metodo=metodo_pago,

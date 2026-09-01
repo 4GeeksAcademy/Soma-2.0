@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from api.decorators import rol_requerido
+from api.decorators import clinica_id_actual, rol_requerido
 from api.models import Paquete, PaqueteServicio, Servicio, db
 
 
@@ -41,9 +41,11 @@ def crear_paquete():
             error="El precio total no puede ser negativo"
         ), 400
 
+    clinica_id = clinica_id_actual()
+
     # Evitar nombres duplicados
     paquete_existente = db.session.scalars(
-        db.select(Paquete).where(Paquete.nombre == nombre)
+        db.select(Paquete).where(Paquete.clinica_id == clinica_id, Paquete.nombre == nombre)
     ).first()
 
     if paquete_existente:
@@ -87,7 +89,7 @@ def crear_paquete():
                 error="El número de sesiones debe ser mayor que 0"
             ), 400
 
-        servicio = db.session.get(Servicio, servicio_id)
+        servicio = Servicio.query.filter_by(id=servicio_id, clinica_id=clinica_id).first()
 
         if servicio is None:
             return jsonify(
@@ -111,6 +113,7 @@ def crear_paquete():
 
     # Crear el paquete
     paquete = Paquete(
+        clinica_id=clinica_id,
         nombre=nombre,
         precio_total=precio_total,
     )
@@ -120,6 +123,7 @@ def crear_paquete():
     # Crear los detalles del paquete
     for detalle in detalles:
         paquete_servicio = PaqueteServicio(
+            clinica_id=clinica_id,
             paquete=paquete,
             servicio_id=detalle["servicio_id"],
             num_sesiones=detalle["num_sesiones"],
