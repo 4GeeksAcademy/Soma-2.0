@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { obtenerPacientes } from "../services/pacientes";
+import { Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 
 export const ListaPacientes = () => {
@@ -41,9 +42,12 @@ export const ListaPacientes = () => {
 				<div className="flex justify-between items-center mb-8">
 					<h1 className="text-3xl font-display font-bold text-cafe">Directorio de Pacientes</h1>
 					{puedeCrearPaciente && (
-						<button className="bg-cafe text-paper px-6 py-2 rounded-full font-medium shadow-soft hover:bg-cafe-soft transition-colors">
+						<Link
+							to="/app/pacientes/nuevo"
+							className="bg-cafe text-paper px-6 py-2 rounded-full font-medium shadow-soft hover:bg-cafe-soft transition-colors inline-block"
+						>
 							+ Nuevo Paciente
-						</button>
+						</Link>
 					)}
 				</div>
 
