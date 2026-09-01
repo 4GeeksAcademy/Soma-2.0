@@ -30,9 +30,14 @@ export const Navbar = () => {
 						Ventas
 					</NavLink>
 					{store.usuario?.rol === "admin" ? (
-						<NavLink to="/app/espacios" className={linkClass}>
-							Espacios
-						</NavLink>
+						<>
+							<NavLink to="/app/espacios" className={linkClass}>
+								Espacios
+							</NavLink>
+							<NavLink to="/app/perfil" className={linkClass}>
+								Perfil
+							</NavLink>
+						</>
 					) : null}
 				</div>
 

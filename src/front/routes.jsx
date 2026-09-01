@@ -15,6 +15,7 @@ import { AppIndexRedirect } from "./components/AppIndexRedirect";
 import { NuevoServicio } from "./pages/NuevoServicio";
 import { ListaPacientes } from "./pages/ListaPacientes";
 import { NuevoPaciente } from "./pages/NuevoPaciente";
+import { Perfil } from "./pages/Perfil";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter(
@@ -40,6 +41,7 @@ export const router = createBrowserRouter(
 					<Route path="pacientes/nuevo" element={<NuevoPaciente />} />
 					<Route path="nuevo-servicio" element={<NuevoServicio />} />
 					<Route path="ventas" element={<Ventas />} />
+					<Route path="perfil" element={<Perfil />} />
 				</Route>
 			</Route>
 		</>
