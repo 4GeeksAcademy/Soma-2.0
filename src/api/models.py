@@ -8,6 +8,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
 
+class TipoInvite(str, enum.Enum):
+    CLIENTE = "cliente"
+    ASISTENTE = "asistente"
+    ESPECIALISTA = "especialista"
+
 
 class Clinica(db.Model):
     __tablename__ = "clinica"
@@ -517,4 +522,61 @@ class GastoFijo(db.Model):
             "concepto": self.concepto,
             "monto": self.monto,
             "fecha": self.fecha.isoformat(),
+        }
+
+
+class Paciente(db.Model):
+    __tablename__ = "paciente"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
+    cedula: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
+    telefono: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    google_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    activo: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
+
+    clinica_id: Mapped[int] = mapped_column(ForeignKey("clinica.id"), nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "nombre_completo": self.nombre_completo,
+            "cedula": self.cedula,
+            "telefono": self.telefono,
+            "email": self.email,
+            "activo": self.activo
+        }
+
+
+class Invite(db.Model):
+    __tablename__ = "invite"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    tipo: Mapped[TipoInvite] = mapped_column(Enum(TipoInvite), nullable=False)
+
+    paciente_id: Mapped[int | None] = mapped_column(ForeignKey("paciente.id"), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(120), nullable=True)
+
+    usado: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=False)
+    expira: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "token": self.token,
+            "tipo": self.tipo.value,
+            "usado": self.usado,
+            "expira": self.expira.isoformat()
         }
