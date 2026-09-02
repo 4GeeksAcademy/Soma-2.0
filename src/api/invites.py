@@ -39,9 +39,7 @@ def generar_invite():
     db.session.add(nuevo_invite)
     db.session.commit()
 
-    link = f"https://tu-url-de-codespace.com/invite/{token_seguro}"
-
-    return jsonify({"msg": "Invite generado con exito", "link": link}), 201
+    return jsonify({"msg": "Invite generado con exito", "token": token_seguro}), 201
 
 
 @invites_bp.route("/invites/<token>", methods=["GET"])

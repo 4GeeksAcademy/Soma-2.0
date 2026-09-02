@@ -186,12 +186,26 @@ class Paciente(db.Model):
     historiales: Mapped[list["HistorialClinico"]] = relationship(
         back_populates="paciente")
 
+    email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    google_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    activo: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password)
+
     def serialize(self):
         return {
             "id": self.id,
             "nombre_completo": self.nombre_completo,
             "cedula": self.cedula,
             "telefono": self.telefono,
+            "email": self.email,
             "ocupacion": self.ocupacion,
             "edad": self.edad,
             "alergias": self.alergias,
@@ -522,40 +536,6 @@ class GastoFijo(db.Model):
             "concepto": self.concepto,
             "monto": self.monto,
             "fecha": self.fecha.isoformat(),
-        }
-
-
-class Paciente(db.Model):
-    __tablename__ = "paciente"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
-    cedula: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
-    telefono: Mapped[str] = mapped_column(String(20), nullable=False)
-
-    email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
-    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    google_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    activo: Mapped[bool] = mapped_column(Boolean(), default=True, nullable=False)
-
-    clinica_id: Mapped[int] = mapped_column(ForeignKey("clinica.id"), nullable=False)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        if not self.password_hash:
-            return False
-        return check_password_hash(self.password_hash, password)
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "nombre_completo": self.nombre_completo,
-            "cedula": self.cedula,
-            "telefono": self.telefono,
-            "email": self.email,
-            "activo": self.activo
         }
 
 

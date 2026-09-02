@@ -88,7 +88,7 @@ app.register_blueprint(dashboard)
 app.register_blueprint(ventas)
 app.register_blueprint(clinica)
 
-CORS(app, origins=origenes_permitidos)
+CORS(app)
 # Handle/serialize errors like a JSON object
 
 
