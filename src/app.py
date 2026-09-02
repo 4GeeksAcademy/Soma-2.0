@@ -20,6 +20,7 @@ from api.pacientes import pacientes
 from api.usuarios import usuarios
 from api.dashboard import dashboard
 from api.ventas import ventas
+from api.invites import invites_bp
 from api.clinica import clinica
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -75,6 +76,7 @@ setup_commands(app)
 
 # Add all endpoints form the API with a "api" prefix
 app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(invites_bp, url_prefix="/api")
 app.register_blueprint(auth)
 app.register_blueprint(espacios)
 app.register_blueprint(citas)
@@ -86,7 +88,7 @@ app.register_blueprint(dashboard)
 app.register_blueprint(ventas)
 app.register_blueprint(clinica)
 
-CORS(app, origins=origenes_permitidos)
+CORS(app)
 # Handle/serialize errors like a JSON object
 
 

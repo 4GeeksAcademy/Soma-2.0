@@ -29,6 +29,10 @@ export const Navbar = () => {
 					<NavLink to="/app/ventas" className={linkClass}>
 						Ventas
 					</NavLink>
+					<NavLink to="/app/pacientes" className={linkClass}>
+						Pacientes
+					</NavLink>
+
 					{store.usuario?.rol === "admin" ? (
 						<>
 							<NavLink to="/app/espacios" className={linkClass}>
@@ -36,6 +40,9 @@ export const Navbar = () => {
 							</NavLink>
 							<NavLink to="/app/perfil" className={linkClass}>
 								Perfil
+							</NavLink>
+							<NavLink to="/admin/invites" className={linkClass}>
+								Invitaciones
 							</NavLink>
 						</>
 					) : null}
