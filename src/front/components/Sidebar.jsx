@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 
 const linkClass = ({ isActive }) =>
@@ -9,24 +9,14 @@ const linkClass = ({ isActive }) =>
 const grupoClass = "mb-1 mt-5 px-3 text-[11px] font-semibold uppercase tracking-wider text-ink-faint first:mt-0";
 
 export const Sidebar = () => {
-	const { store, dispatch } = useGlobalReducer();
-	const navigate = useNavigate();
+	const { store } = useGlobalReducer();
 	const rol = store.usuario?.rol;
 	const esStaffOperativo = ["admin", "asistente"].includes(rol);
 	const esAdmin = rol === "admin";
 
-	const handleLogout = () => {
-		dispatch({ type: "logout" });
-		navigate("/login", { replace: true });
-	};
-
 	return (
-		<aside className="flex h-screen w-60 shrink-0 flex-col border-r border-ink/[0.08] bg-paper">
-			<Link to="/app/agenda" className="px-5 py-5 font-display text-lg font-semibold text-ink">
-				Soma
-			</Link>
-
-			<nav className="flex-1 overflow-y-auto px-3 pb-4">
+		<aside className="sticky top-16 flex h-[calc(100vh-4rem)] w-60 shrink-0 flex-col overflow-y-auto border-r border-ink/[0.08] bg-paper">
+			<nav className="flex-1 px-3 py-4">
 				<p className={grupoClass}>Operación</p>
 				<NavLink to="/app/agenda" className={linkClass}>
 					Agenda
@@ -74,19 +64,6 @@ export const Sidebar = () => {
 					</>
 				) : null}
 			</nav>
-
-			<div className="border-t border-ink/[0.08] px-4 py-4">
-				<p className="mb-2 truncate text-[13px] text-ink-soft">
-					{store.usuario?.nombre}
-					{rol ? ` · ${rol}` : ""}
-				</p>
-				<button
-					onClick={handleLogout}
-					className="w-full rounded-full border-[1.5px] border-beige px-4 py-1.5 text-[13.5px] font-semibold text-ink-soft hover:border-cafe hover:text-cafe"
-				>
-					Cerrar sesión
-				</button>
-			</div>
 		</aside>
 	);
 };
