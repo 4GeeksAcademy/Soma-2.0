@@ -50,13 +50,13 @@ export const Recibo = () => {
 
 	return (
 		<div className="mx-auto max-w-2xl px-6 py-10 print:max-w-full print:p-0">
-			<div className="mb-6 flex items-center justify-between print:hidden">
+			<div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
 				<Link to="/app/ventas" className="text-[13.5px] text-ink-soft hover:text-cafe hover:underline">
 					← Volver a Ventas
 				</Link>
 				<button
 					onClick={() => window.print()}
-					className="rounded-full bg-ink px-6 py-2.5 text-[14px] font-bold text-paper hover:bg-cafe"
+					className="shrink-0 rounded-full bg-ink px-6 py-2.5 text-[14px] font-bold text-paper hover:bg-cafe"
 				>
 					Imprimir / Guardar como PDF
 				</button>
