@@ -339,6 +339,7 @@ class PaqueteServicio(db.Model):
             "id": self.id,
             "paquete_id": self.paquete_id,
             "servicio_id": self.servicio_id,
+            "servicio_nombre": self.servicio.nombre if self.servicio else None,
             "num_sesiones": self.num_sesiones,
         }
 

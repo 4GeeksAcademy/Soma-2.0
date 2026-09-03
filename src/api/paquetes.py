@@ -7,6 +7,16 @@ from api.models import Paquete, PaqueteServicio, Servicio, db
 paquetes = Blueprint("paquetes", __name__, url_prefix="/api/paquetes")
 
 
+@paquetes.route("", methods=["GET"])
+@rol_requerido("admin", "asistente")
+def listar_paquetes():
+    lista = Paquete.query.filter_by(clinica_id=clinica_id_actual()).all()
+    return jsonify([
+        {**paquete.serialize(), "servicios": [detalle.serialize() for detalle in paquete.servicios]}
+        for paquete in lista
+    ])
+
+
 @paquetes.route("", methods=["POST"])
 @rol_requerido("admin", "asistente")
 def crear_paquete():
