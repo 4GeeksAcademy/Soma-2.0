@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { obtenerPacientes } from "../services/pacientes";
 import { listarServicios } from "../services/servicios";
@@ -383,6 +384,7 @@ export const Ventas = () => {
 											<th className="pb-3 font-semibold uppercase">Total</th>
 											<th className="pb-3 font-semibold uppercase">Abonado</th>
 											<th className="pb-3 font-semibold uppercase">Estado / Deuda</th>
+											<th className="pb-3 font-semibold uppercase"></th>
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-ink/[0.05]">
@@ -412,6 +414,11 @@ export const Ventas = () => {
 																Saldado
 															</span>
 														)}
+													</td>
+													<td className="py-3 text-right">
+														<Link to={`/app/ventas/${v.id}/recibo`} className="font-semibold text-cafe hover:underline">
+															Recibo
+														</Link>
 													</td>
 												</tr>
 											);

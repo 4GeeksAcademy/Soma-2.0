@@ -4,7 +4,7 @@ from flask_cors import CORS
 from api.decorators import clinica_id_actual, rol_requerido
 from api.models import (
     db, Venta, Pago, Paciente, Servicio, Cita,
-    PaquetePaciente, FormaPagoPaquete
+    PaquetePaciente, FormaPagoPaquete, Clinica, Paquete
 )
 
 ventas = Blueprint("ventas", __name__, url_prefix="/api/ventas")
@@ -36,6 +36,39 @@ def obtener_venta(venta_id):
     if not venta:
         return jsonify(error="Venta no encontrada"), 404
     return jsonify(venta.serialize()), 200
+
+
+@ventas.route("/<int:venta_id>/recibo", methods=["GET"])
+@rol_requerido("admin", "asistente")
+# Datos para la vista imprimible del recibo -- el PDF se genera del lado del
+# navegador (window.print() -> "Guardar como PDF"), este endpoint solo arma
+# los datos ya resueltos (nombres, no ids) para que el frontend no tenga que
+# cruzar varios catalogos.
+def obtener_recibo_venta(venta_id):
+    clinica_id = clinica_id_actual()
+    venta = Venta.query.filter_by(id=venta_id, clinica_id=clinica_id).first()
+    if not venta:
+        return jsonify(error="Venta no encontrada"), 404
+
+    clinica = Clinica.query.get(clinica_id)
+    paciente = Paciente.query.get(venta.paciente_id)
+
+    concepto = None
+    if venta.servicio_id:
+        servicio = Servicio.query.get(venta.servicio_id)
+        concepto = servicio.nombre if servicio else None
+    elif venta.paquete_paciente_id:
+        paquete_pac = PaquetePaciente.query.get(venta.paquete_paciente_id)
+        paquete = Paquete.query.get(paquete_pac.paquete_id) if paquete_pac and paquete_pac.paquete_id else None
+        concepto = paquete.nombre if paquete else None
+
+    return jsonify({
+        "venta": venta.serialize(),
+        "concepto": concepto or "Servicio",
+        "clinica_nombre": clinica.nombre if clinica else None,
+        "paciente_nombre": paciente.nombre_completo if paciente else f"Paciente #{venta.paciente_id}",
+        "paciente_telefono": paciente.telefono if paciente else None,
+    }), 200
 
 
 @ventas.route("", methods=["POST"])

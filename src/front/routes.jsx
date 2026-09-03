@@ -18,6 +18,8 @@ import { NuevoPaciente } from "./pages/NuevoPaciente";
 import { Perfil } from "./pages/Perfil";
 import { GenerarInvite } from "./pages/GenerarInvite";
 import { RedimirInvite } from "./pages/RedimirInvite";
+import { Paquetes } from "./pages/Paquetes";
+import { Recibo } from "./pages/Recibo";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter(
@@ -45,8 +47,10 @@ export const router = createBrowserRouter(
 					<Route path="pacientes/nuevo" element={<NuevoPaciente />} />
 					<Route path="nuevo-servicio" element={<NuevoServicio />} />
 					<Route path="ventas" element={<Ventas />} />
+					<Route path="ventas/:id/recibo" element={<Recibo />} />
 					<Route path="perfil" element={<Perfil />} />
 					<Route path="invitaciones" element={<GenerarInvite />} />
+					<Route path="paquetes" element={<Paquetes />} />
 				</Route>
 			</Route>
 		</>
