@@ -29,6 +29,14 @@ export const Navbar = () => {
 					<NavLink to="/app/ventas" className={linkClass}>
 						Ventas
 					</NavLink>
+					<NavLink to="/app/pacientes" className={linkClass}>
+						Pacientes
+					</NavLink>
+					{["admin", "asistente"].includes(store.usuario?.rol) ? (
+						<NavLink to="/app/invitaciones" className={linkClass}>
+							Invitaciones
+						</NavLink>
+					) : null}
 					{store.usuario?.rol === "admin" ? (
 						<>
 							<NavLink to="/app/espacios" className={linkClass}>
