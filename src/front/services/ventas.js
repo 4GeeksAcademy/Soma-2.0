@@ -12,6 +12,9 @@ export const listarVentas = (token, params = {}) => {
 // GET /api/ventas/:id -> Detalle de una venta
 export const obtenerVenta = (token, id) => request(`/api/ventas/${id}`, { headers: authHeaders(token) });
 
+// GET /api/ventas/:id/recibo -> Datos ya resueltos (nombres) para la vista imprimible
+export const obtenerRecibo = (token, id) => request(`/api/ventas/${id}/recibo`, { headers: authHeaders(token) });
+
 // POST /api/ventas -> Registrar una nueva venta (completa o con abono)
 export const registrarVenta = (token, datos) =>
 	request("/api/ventas", {

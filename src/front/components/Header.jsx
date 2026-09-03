@@ -11,7 +11,7 @@ export const Header = () => {
 	};
 
 	return (
-		<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-ink/[0.08] bg-paper px-6">
+		<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-ink/[0.08] bg-paper px-6 print:hidden">
 			<Link to="/app/agenda" className="font-display text-lg font-semibold text-ink">
 				Soma
 			</Link>
