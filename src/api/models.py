@@ -156,6 +156,7 @@ class Paciente(db.Model):
     __table_args__ = (
         UniqueConstraint("clinica_id", "telefono", name="uq_paciente_clinica_telefono"),
         UniqueConstraint("clinica_id", "cedula", name="uq_paciente_clinica_cedula"),
+        UniqueConstraint("clinica_id", "email", name="uq_paciente_clinica_email"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -177,9 +178,27 @@ class Paciente(db.Model):
     tipo_piel: Mapped[str | None] = mapped_column(
         String(50), nullable=True)
 
+    # Acceso al portal (#68) -- nulos hasta que el paciente redima un invite.
+    # email es unico por clinica (no global, a diferencia de Usuario.email)
+    # porque un paciente nunca elige su clinica en el login: entra por un link
+    # de invite que ya sabe a que Paciente/clinica pertenece.
+    email: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    google_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    activo: Mapped[bool] = mapped_column(
+        Boolean(), default=True, nullable=False, server_default="1")
+
     citas: Mapped[list["Cita"]] = relationship(back_populates="paciente")
     historiales: Mapped[list["HistorialClinico"]] = relationship(
         back_populates="paciente")
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password)
 
     def serialize(self):
         return {
@@ -187,6 +206,7 @@ class Paciente(db.Model):
             "nombre_completo": self.nombre_completo,
             "cedula": self.cedula,
             "telefono": self.telefono,
+            "email": self.email,
             "ocupacion": self.ocupacion,
             "edad": self.edad,
             "alergias": self.alergias,
@@ -517,4 +537,57 @@ class GastoFijo(db.Model):
             "concepto": self.concepto,
             "monto": self.monto,
             "fecha": self.fecha.isoformat(),
+        }
+
+
+# Tabla/entidad invite (#68) -- link de un solo uso para que Clientes,
+# Asistentes o Especialistas obtengan acceso de login. "usado"/"expira" se
+# checan en el momento (no hay un estado "expirado" guardado aparte, para no
+# depender de un job que lo actualice).
+
+class TipoInvite(str, enum.Enum):
+    CLIENTE = "cliente"
+    ASISTENTE = "asistente"
+    ESPECIALISTA = "especialista"
+
+
+class Invite(db.Model):
+    __tablename__ = "invite"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
+    tipo: Mapped[TipoInvite] = mapped_column(Enum(TipoInvite), nullable=False)
+
+    # paciente_id requerido si tipo=cliente (el invite siempre es para un
+    # paciente que el staff ya registro clinicamente, nunca crea uno nuevo).
+    # email requerido si tipo=asistente/especialista (todavia no existe el
+    # Usuario, se crea al redimir).
+    paciente_id: Mapped[int | None] = mapped_column(
+        ForeignKey("paciente.id"), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(120), nullable=True)
+
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    usado: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=False)
+    expira: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    creado_por_usuario_id: Mapped[int] = mapped_column(
+        ForeignKey("usuario.id"), nullable=False)
+    fecha_creacion: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False)
+
+    paciente: Mapped["Paciente"] = relationship()
+
+    @property
+    def expirado(self) -> bool:
+        return datetime.utcnow() > self.expira
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "tipo": self.tipo.value,
+            "usado": self.usado,
+            "expirado": self.expirado,
+            "expira": self.expira.isoformat(),
+            "paciente_nombre": self.paciente.nombre_completo if self.paciente else None,
         }

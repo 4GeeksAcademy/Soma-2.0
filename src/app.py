@@ -21,6 +21,7 @@ from api.usuarios import usuarios
 from api.dashboard import dashboard
 from api.ventas import ventas
 from api.clinica import clinica
+from api.invites import invites
 from api.admin import setup_admin
 from api.commands import setup_commands
 
@@ -85,6 +86,7 @@ app.register_blueprint(usuarios)
 app.register_blueprint(dashboard)
 app.register_blueprint(ventas)
 app.register_blueprint(clinica)
+app.register_blueprint(invites)
 
 CORS(app, origins=origenes_permitidos)
 # Handle/serialize errors like a JSON object

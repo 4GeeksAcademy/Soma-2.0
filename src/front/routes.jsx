@@ -16,6 +16,8 @@ import { NuevoServicio } from "./pages/NuevoServicio";
 import { ListaPacientes } from "./pages/ListaPacientes";
 import { NuevoPaciente } from "./pages/NuevoPaciente";
 import { Perfil } from "./pages/Perfil";
+import { GenerarInvite } from "./pages/GenerarInvite";
+import { RedimirInvite } from "./pages/RedimirInvite";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter(
@@ -28,6 +30,8 @@ export const router = createBrowserRouter(
 			<Route path="/olvide-password" element={<OlvidePassword />} errorElement={<h1>Not found!</h1>} />
 
 			<Route path="/restablecer-password" element={<RestablecerPassword />} errorElement={<h1>Not found!</h1>} />
+
+			<Route path="/invite/:token" element={<RedimirInvite />} errorElement={<h1>Not found!</h1>} />
 
 			<Route path="/app" element={<ProtectedRoute />} errorElement={<h1>Not found!</h1>}>
 				<Route element={<Layout />}>
@@ -42,6 +46,7 @@ export const router = createBrowserRouter(
 					<Route path="nuevo-servicio" element={<NuevoServicio />} />
 					<Route path="ventas" element={<Ventas />} />
 					<Route path="perfil" element={<Perfil />} />
+					<Route path="invitaciones" element={<GenerarInvite />} />
 				</Route>
 			</Route>
 		</>
