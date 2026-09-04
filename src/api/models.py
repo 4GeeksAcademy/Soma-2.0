@@ -48,12 +48,13 @@ class Usuario(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     clinica_id: Mapped[int] = mapped_column(
-        ForeignKey("clinica.id"), nullable=False)
+        ForeignKey("clinica.id"), default=1, nullable=False)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     # Global, no por clinica -- el login es solo email+password (sin selector de
     # clinica), asi que el email tiene que resolver un Usuario sin ambiguedad.
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    google_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     rol: Mapped[RolUsuario] = mapped_column(Enum(RolUsuario), nullable=False)
     activo: Mapped[bool] = mapped_column(
         Boolean(), default=True, nullable=False)
@@ -65,7 +66,9 @@ class Usuario(db.Model):
         DateTime, nullable=True)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -150,7 +153,6 @@ class Cita(db.Model):
             "google_event_id": self.google_event_id,
         }
 
-
 class Paciente(db.Model):
     __tablename__ = "paciente"
     __table_args__ = (
@@ -165,6 +167,7 @@ class Paciente(db.Model):
     nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
     cedula: Mapped[str] = mapped_column(String(50), nullable=False)
     telefono: Mapped[str] = mapped_column(String(20), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
     ocupacion: Mapped[str | None] = mapped_column(
         String(120), nullable=True)
     edad: Mapped[int | None] = mapped_column(Integer, nullable=True)

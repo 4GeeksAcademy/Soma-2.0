@@ -7,9 +7,11 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity, verify_jwt_in_request
 from flask_mail import Message
 
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 from api import google_calendar
 from api.extensions import mail
-from api.models import Clinica, Usuario, db
+from api.models import Clinica, Paciente, Usuario, db
 
 auth = Blueprint("auth", __name__, url_prefix="/api/auth")
 CORS(auth)
@@ -47,6 +49,84 @@ def login():
 
     return jsonify(access_token=access_token, usuario=usuario.serialize(), clinica=clinica.serialize())
 
+@auth.route("/google", methods=["POST"])
+def login_google():
+    """Autenticación con Google para Staff (Usuario) y Clientes (Paciente)."""
+    data = request.get_json(silent=True) or {}
+    token = data.get("credential") or data.get("token")
+
+    if not token:
+            return jsonify(error="El token de credencial de Google es requerido"), 400
+
+    client_id = os.environ.get("GOOGLE_AUTH_CLIENT_ID")
+    if not client_id:
+        return jsonify(error="GOOGLE_AUTH_CLIENT_ID no está configurado en el servidor"), 500
+
+# 1. Validar firma y audiencia del ID Token contra Google
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            google_requests.Request(),
+            client_id
+        )
+    except ValueError as e:
+        return jsonify(error=f"Token de Google inválido o expirado: {str(e)}"), 401
+
+    email = idinfo.get("email")
+    if not email:
+        return jsonify(error="El token de Google no contiene un correo verificado"), 400
+
+# 2. Caso A: Si coincide con un Usuario.email (Staff: admin, asistente, especialista)
+    usuario = Usuario.query.filter_by(email=email).first()
+    if usuario:
+        if not usuario.activo:
+            return jsonify(error="Esta cuenta de usuario se encuentra inactiva"), 403
+
+        claims = {
+            "rol": usuario.rol.value,
+            "nombre": usuario.nombre,
+            "tipo": "staff",
+        }
+        if hasattr(usuario, "clinica_id"):
+            claims["clinica_id"] = usuario.clinica_id
+
+        access_token = create_access_token(
+            identity=str(usuario.id),
+            additional_claims=claims,
+            expires_delta=timedelta(hours=8),
+            )
+        return jsonify(
+            access_token=access_token,
+            usuario=usuario.serialize(),
+            tipo="staff"
+            ), 200
+# 3. Caso B: Si coincide con un Paciente.email (Clientes / Portal de paciente)
+    paciente = Paciente.query.filter_by(email=email).first()
+    if paciente:
+        claims = {
+            "rol": "paciente",
+            "tipo": "paciente",
+            "nombre": paciente.nombre_completo,
+        }
+        if hasattr(paciente, "clinica_id"):
+            claims["clinica_id"] = paciente.clinica_id
+
+        access_token = create_access_token(
+            identity=str(paciente.id),
+            additional_claims=claims,
+            expires_delta=timedelta(hours=8),
+        )
+        return jsonify(
+            access_token=access_token,
+            usuario=paciente.serialize(),
+            tipo="paciente"
+        ), 200
+
+# 4. Caso C: No coincide con nada -> 404 (No hay auto-registro público)
+    return jsonify(
+        error="No existe una cuenta registrada con este correo. La cuenta debe ser creada previamente por un vadministrador o mediante una invitación."
+        ), 404       
+    
 
 @auth.route("/google/callback", methods=["GET"])
 def google_calendar_callback():
