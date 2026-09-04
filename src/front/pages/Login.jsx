@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { AuthLayout, inputClass, labelClass, ErrorBanner, SuccessBanner } from "../components/AuthLayout";
-import { login as loginRequest, loginGoogle as loginGoogleRequest, cambiarPassword as cambiarPasswordRequest } from "../services/auth";
-import { GoogleLoginButton } from "../components/GoogleLoginButton";				
-
+import {
+	login as loginRequest,
+	loginGoogle as loginGoogleRequest,
+	cambiarPassword as cambiarPasswordRequest
+} from "../services/auth";
+import { GoogleLoginButton } from "../components/GoogleLoginButton";
 
 export const Login = () => {
 	const { dispatch } = useGlobalReducer();
@@ -23,26 +26,25 @@ export const Login = () => {
 	const [cargando, setCargando] = useState(false);
 	const [sesionTemporal, setSesionTemporal] = useState(null);
 
-    const handleGoogleSuccess = async (credential) => {
-        setError("");
-        setCargando(true);
-        try {
-            const { access_token, usuario, tipo } = await loginGoogleRequest(credential);
-            dispatch({ type: "set_auth", payload: { token: access_token, usuario, tipo } });
+	const handleGoogleSuccess = async (credential) => {
+		setError("");
+		setCargando(true);
+		try {
+			const { access_token, usuario, tipo } = await loginGoogleRequest(credential);
+			dispatch({ type: "set_auth", payload: { token: access_token, usuario, tipo } });
 
-            // Si es paciente lo llevamos a su portal, si es staff a /app (o su destino previo)
-            if (tipo === "paciente") {
-                navigate("/portal-paciente", { replace: true });
-            } else {
-                navigate(destino, { replace: true });
-            }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setCargando(false);
-            }
-        };	
-
+			// Si es paciente lo llevamos a su portal, si es staff a /app (o su destino previo)
+			if (tipo === "paciente") {
+				navigate("/portal-paciente", { replace: true });
+			} else {
+				navigate(destino, { replace: true });
+			}
+		} catch (err) {
+			setError(err.message);
+		} finally {
+			setCargando(false);
+		}
+	};
 
 	const handleLogin = async (event) => {
 		event.preventDefault();
@@ -128,29 +130,23 @@ export const Login = () => {
 						¿Olvidaste tu contraseña?
 					</Link>
 
-					 <button
-                            type="submit"
-                            disabled={cargando}
-                            className="w-full rounded-full bg-ink py-3.5 text-[15px] font-bold text-paper hover:bg-cafe
+					<button
+						type="submit"
+						disabled={cargando}
+						className="w-full rounded-full bg-ink py-3.5 text-[15px] font-bold text-paper hover:bg-cafe
 disabled:opacity-60"
-                        >
-                            {cargando ? "Ingresando…" : "Iniciar sesión"}
-                        </button>
+					>
+						{cargando ? "Ingresando…" : "Iniciar sesión"}
+					</button>
 
-                        <div className="my-5 flex items-center">
-                            <div className="flex-grow border-t border-beige" />
-                            <span className="mx-3 text-[12px] font-medium uppercase tracking-wider text-ink-soft">
-                                o continúa con
-                            </span>
-                            <div className="flex-grow border-t border-beige" />
-                        </div>
+					<div className="my-5 flex items-center">
+						<div className="flex-grow border-t border-beige" />
+						<span className="mx-3 text-[12px] font-medium uppercase tracking-wider text-ink-soft">o continúa con</span>
+						<div className="flex-grow border-t border-beige" />
+					</div>
 
-                        <GoogleLoginButton
-                            onSuccess={handleGoogleSuccess}
-                            onError={(msg) => setError(msg)}
-                            disabled={cargando}
-                        />
-                    </form>
+					<GoogleLoginButton onSuccess={handleGoogleSuccess} onError={(msg) => setError(msg)} disabled={cargando} />
+				</form>
 			) : (
 				<form onSubmit={handleCambiarPassword}>
 					<h1 className="mb-1 text-2xl">Actualiza tu contraseña</h1>

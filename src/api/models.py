@@ -23,8 +23,10 @@ class Clinica(db.Model):
     # Google Calendar (#71) -- refresh_token de la cuenta que el Admin conecto
     # desde su perfil. Reemplaza el GOOGLE_REFRESH_TOKEN global de una sola
     # cuenta compartida (ver api/google_calendar.py).
-    google_refresh_token: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    google_cuenta_email: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    google_refresh_token: Mapped[str | None] = mapped_column(
+        String(500), nullable=True)
+    google_cuenta_email: Mapped[str | None] = mapped_column(
+        String(150), nullable=True)
 
     def serialize(self):
         return {
@@ -52,9 +54,11 @@ class Usuario(db.Model):
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     # Global, no por clinica -- el login es solo email+password (sin selector de
     # clinica), asi que el email tiene que resolver un Usuario sin ambiguedad.
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    google_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    google_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True)
     rol: Mapped[RolUsuario] = mapped_column(Enum(RolUsuario), nullable=False)
     activo: Mapped[bool] = mapped_column(
         Boolean(), default=True, nullable=False)
@@ -153,12 +157,22 @@ class Cita(db.Model):
             "google_event_id": self.google_event_id,
         }
 
+
 class Paciente(db.Model):
     __tablename__ = "paciente"
     __table_args__ = (
-        UniqueConstraint("clinica_id", "telefono", name="uq_paciente_clinica_telefono"),
-        UniqueConstraint("clinica_id", "cedula", name="uq_paciente_clinica_cedula"),
-        UniqueConstraint("clinica_id", "email", name="uq_paciente_clinica_email"),
+        UniqueConstraint(
+            "clinica_id",
+            "telefono",
+            name="uq_paciente_clinica_telefono"),
+        UniqueConstraint(
+            "clinica_id",
+            "cedula",
+            name="uq_paciente_clinica_cedula"),
+        UniqueConstraint(
+            "clinica_id",
+            "email",
+            name="uq_paciente_clinica_email"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -167,7 +181,8 @@ class Paciente(db.Model):
     nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
     cedula: Mapped[str] = mapped_column(String(50), nullable=False)
     telefono: Mapped[str] = mapped_column(String(20), nullable=False)
-    email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
+    email: Mapped[str | None] = mapped_column(
+        String(120), unique=True, nullable=True)
     ocupacion: Mapped[str | None] = mapped_column(
         String(120), nullable=True)
     edad: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -186,7 +201,8 @@ class Paciente(db.Model):
     # porque un paciente nunca elige su clinica en el login: entra por un link
     # de invite que ya sabe a que Paciente/clinica pertenece.
     email: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(
+        String(255), nullable=True)
     google_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     activo: Mapped[bool] = mapped_column(
         Boolean(), default=True, nullable=False, server_default="1")
@@ -288,7 +304,10 @@ class Servicio(db.Model):
 class Paquete(db.Model):
     __tablename__ = "paquete"
     __table_args__ = (
-        UniqueConstraint("clinica_id", "nombre", name="uq_paquete_clinica_nombre"),
+        UniqueConstraint(
+            "clinica_id",
+            "nombre",
+            name="uq_paquete_clinica_nombre"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -571,8 +590,10 @@ class Invite(db.Model):
         ForeignKey("paciente.id"), nullable=True)
     email: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
-    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    usado: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=False)
+    token: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False)
+    usado: Mapped[bool] = mapped_column(
+        Boolean(), default=False, nullable=False)
     expira: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     creado_por_usuario_id: Mapped[int] = mapped_column(

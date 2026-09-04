@@ -42,7 +42,8 @@ app.url_map.strict_slashes = False
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
-    # psycopg v3 (no psycopg2-binary -- sin wheels para Python 3.14+) requiere el driver explicito
+    # psycopg v3 (no psycopg2-binary -- sin wheels para Python 3.14+) requiere
+    # el driver explicito
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
     elif db_url.startswith("postgresql://") and "+psycopg" not in db_url:

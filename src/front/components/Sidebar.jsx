@@ -17,18 +17,18 @@ export const Sidebar = () => {
 	return (
 		<aside className="sticky top-16 flex h-[calc(100vh-4rem)] w-60 shrink-0 flex-col overflow-y-auto border-r border-ink/[0.08] bg-paper print:hidden">
 			<nav className="flex-1 px-3 py-4">
-                    <p className={grupoClass}>Operación</p>
-                    {esAdmin ? (
-                        <NavLink to="/app/dashboard" className={linkClass}>
-                            Dashboard
-                        </NavLink>
-                    ) : null}
-                    <NavLink to="/app/agenda" className={linkClass}>
-                        Agenda
-                    </NavLink>
-                    <NavLink to="/app/pacientes" className={linkClass}>
-                        Pacientes
-                    </NavLink>
+				<p className={grupoClass}>Operación</p>
+				{esAdmin ? (
+					<NavLink to="/app/dashboard" className={linkClass}>
+						Dashboard
+					</NavLink>
+				) : null}
+				<NavLink to="/app/agenda" className={linkClass}>
+					Agenda
+				</NavLink>
+				<NavLink to="/app/pacientes" className={linkClass}>
+					Pacientes
+				</NavLink>
 				{/* Ventas: matching @rol_requerido("admin", "asistente") en api/ventas.py -- antes se mostraba a todos */}
 				{esStaffOperativo ? (
 					<NavLink to="/app/ventas" className={linkClass}>
