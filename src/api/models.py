@@ -50,7 +50,7 @@ class Usuario(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     clinica_id: Mapped[int] = mapped_column(
-        ForeignKey("clinica.id"), default=1, nullable=False)
+        ForeignKey("clinica.id"), nullable=False)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     # Global, no por clinica -- el login es solo email+password (sin selector de
     # clinica), asi que el email tiene que resolver un Usuario sin ambiguedad.
