@@ -128,7 +128,11 @@ def mis_paquetes():
 
         resultado.append({
             "id": paquete_paciente.id,
-            "paquete_id": paquete_paciente.paquete_id,
+            "paquete": (
+                paquete_paciente.paquete.nombre
+                if paquete_paciente.paquete
+                else None
+            ),
             "fecha_compra": paquete_paciente.fecha_compra.isoformat(),
             "estado": paquete_paciente.estado.value,
             "sesiones_pendientes": [

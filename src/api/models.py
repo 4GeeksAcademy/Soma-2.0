@@ -6,7 +6,6 @@ from datetime import datetime
 import enum
 
 
-
 db = SQLAlchemy()
 
 
@@ -376,6 +375,8 @@ class PaquetePaciente(db.Model):
         default=EstadoPaquete.ACTIVO,
         nullable=False
     )
+
+    paquete: Mapped["Paquete | None"] = relationship()
 
     def serialize(self):
         return {
