@@ -18,6 +18,11 @@ export const Sidebar = () => {
 		<aside className="sticky top-16 flex h-[calc(100vh-4rem)] w-60 shrink-0 flex-col overflow-y-auto border-r border-ink/[0.08] bg-paper print:hidden">
 			<nav className="flex-1 px-3 py-4">
 				<p className={grupoClass}>Operación</p>
+				{esAdmin ? (
+					<NavLink to="/app/dashboard" className={linkClass}>
+						Dashboard
+					</NavLink>
+				) : null}
 				<NavLink to="/app/agenda" className={linkClass}>
 					Agenda
 				</NavLink>

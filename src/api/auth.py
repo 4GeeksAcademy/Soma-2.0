@@ -1,6 +1,8 @@
 from api.models import Clinica, Paciente, Usuario, db
 from api.extensions import mail
 from api import google_calendar
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 from flask_mail import Message
 from flask_jwt_extended import (
     create_access_token,
@@ -18,6 +20,24 @@ auth = Blueprint("auth", __name__, url_prefix="/api/auth")
 CORS(auth)
 
 RESET_TOKEN_VIGENCIA_HORAS = 1
+
+
+def verificar_token_google(token: str) -> dict:
+    """Valida la firma y audiencia del ID Token de Google y retorna el payload decodificado.
+
+    Lanza ValueError si el token es inválido o expiró, o RuntimeError si falta la configuración.
+    Exportada para ser reutilizada por otros módulos como la redención de invitaciones (#68).
+    """
+    client_id = os.environ.get("GOOGLE_AUTH_CLIENT_ID")
+    if not client_id:
+        raise RuntimeError(
+            "GOOGLE_AUTH_CLIENT_ID no está configurado en el servidor")
+
+    return id_token.verify_oauth2_token(
+        token,
+        google_requests.Request(),
+        client_id
+    )
 
 
 @auth.route("/login", methods=["POST"])
@@ -90,6 +110,100 @@ def login():
     return jsonify(error="credenciales inválidas"), 401
 
 
+@auth.route("/google", methods=["POST"])
+def login_google():
+    """Autenticación con Google para Staff (Usuario) y Clientes (Paciente)."""
+    data = request.get_json(silent=True) or {}
+    token = data.get("credential") or data.get("token")
+
+    if not token:
+        return jsonify(
+            error="El token de credencial de Google es requerido"), 400
+
+    # 1. Validar firma y audiencia del ID Token contra Google usando la
+    # función reutilizable
+    try:
+        idinfo = verificar_token_google(token)
+    except ValueError as e:
+        return jsonify(
+            error=f"Token de Google inválido o expirado: {str(e)}"), 401
+    except RuntimeError as e:
+        return jsonify(error=str(e)), 500
+
+    email = idinfo.get("email")
+    if not email:
+        return jsonify(
+            error="El token de Google no contiene un correo verificado"), 400
+
+    # 2. Caso A: Si coincide con un Usuario.email (Staff: admin, asistente,
+    # especialista)
+    usuario = Usuario.query.filter_by(email=email).first()
+    if usuario:
+        if not usuario.activo:
+            return jsonify(
+                error="Esta cuenta de usuario se encuentra inactiva"), 403
+
+        # Si aún no tenía vinculado el google_id, vincularlo ahora
+        google_id = idinfo.get("sub")
+        if google_id and hasattr(
+                usuario, "google_id") and not usuario.google_id:
+            usuario.google_id = google_id
+            db.session.commit()
+
+        claims = {
+            "rol": usuario.rol.value,
+            "nombre": usuario.nombre,
+            "tipo": "staff",
+        }
+        if hasattr(usuario, "clinica_id"):
+            claims["clinica_id"] = usuario.clinica_id
+
+        access_token = create_access_token(
+            identity=str(usuario.id),
+            additional_claims=claims,
+            expires_delta=timedelta(hours=8),
+        )
+        return jsonify(
+            access_token=access_token,
+            usuario=usuario.serialize(),
+            tipo="staff"
+        ), 200
+
+    # 3. Caso B: Si coincide con un Paciente.email (Clientes / Portal de
+    # paciente)
+    paciente = Paciente.query.filter_by(email=email).first()
+    if paciente:
+        google_id = idinfo.get("sub")
+        if google_id and hasattr(
+                paciente, "google_id") and not paciente.google_id:
+            paciente.google_id = google_id
+            db.session.commit()
+
+        claims = {
+            "rol": "paciente",
+            "tipo": "paciente",
+            "nombre": paciente.nombre_completo,
+        }
+        if hasattr(paciente, "clinica_id"):
+            claims["clinica_id"] = paciente.clinica_id
+
+        access_token = create_access_token(
+            identity=str(paciente.id),
+            additional_claims=claims,
+            expires_delta=timedelta(hours=8),
+        )
+        return jsonify(
+            access_token=access_token,
+            usuario=paciente.serialize(),
+            tipo="paciente"
+        ), 200
+
+    # 4. Caso C: No coincide con nada -> 404 (No hay auto-registro público)
+    return jsonify(
+        error="No existe una cuenta registrada con este correo. La cuenta debe ser creada previamente por un administrador o mediante una invitación."
+    ), 404
+
+
 @auth.route("/google/callback", methods=["GET"])
 def google_calendar_callback():
     """Callback de OAuth2 para conectar el Google Calendar de una Clinica (#71).
@@ -104,7 +218,8 @@ def google_calendar_callback():
     pertenece, ya que esta ruta la visita Google directo (sin header
     Authorization posible en una redireccion de navegador).
     """
-    frontend_url = current_app.config.get("FRONTEND_URL", "http://localhost:5173")
+    frontend_url = current_app.config.get(
+        "FRONTEND_URL", "http://localhost:5173")
     destino = f"{frontend_url}/app/perfil"
     code = request.args.get("code")
     state = request.args.get("state")
@@ -127,9 +242,11 @@ def google_calendar_callback():
         return redirect(f"{destino}?google_calendar=error")
 
     try:
-        refresh_token, email = google_calendar.intercambiar_codigo(code, redirect_uri)
+        refresh_token, email = google_calendar.intercambiar_codigo(
+            code, redirect_uri)
     except Exception as error:
-        print(f"[auth] no se pudo intercambiar el codigo de Google Calendar: {error}")
+        print(
+            f"[auth] no se pudo intercambiar el codigo de Google Calendar: {error}")
         return redirect(f"{destino}?google_calendar=error")
 
     if not refresh_token:
@@ -153,7 +270,8 @@ def cambiar_password():
     password_nueva = data.get("password_nueva")
 
     if not password_actual or not password_nueva:
-        return jsonify(error="password_actual y password_nueva son requeridos"), 400
+        return jsonify(
+            error="password_actual y password_nueva son requeridos"), 400
     if not usuario.check_password(password_actual):
         return jsonify(error="password_actual incorrecta"), 401
 
@@ -164,7 +282,8 @@ def cambiar_password():
 
 
 def _enviar_email_reset(usuario, token):
-    frontend_url = current_app.config.get("FRONTEND_URL", "http://localhost:5173")
+    frontend_url = current_app.config.get(
+        "FRONTEND_URL", "http://localhost:5173")
     link = f"{frontend_url}/restablecer-password?token={token}"
     try:
         mensaje = Message(
@@ -178,7 +297,9 @@ def _enviar_email_reset(usuario, token):
         )
         mail.send(mensaje)
     except Exception as error:
-        print(f"[auth] no se pudo enviar el email de reset a {usuario.email}: {error}")
+        print(
+            f"[auth] no se pudo enviar el email de reset a {
+                usuario.email}: {error}")
 
 
 @auth.route("/reset-password/solicitar", methods=["POST"])
@@ -198,8 +319,10 @@ def solicitar_reset_password():
         db.session.commit()
         _enviar_email_reset(usuario, token)
 
-    # Respuesta generica siempre, exista o no el email -- evita filtrar que emails estan registrados.
-    return jsonify(mensaje="si el email existe, se envio un link de restablecimiento")
+    # Respuesta generica siempre, exista o no el email -- evita filtrar que
+    # emails estan registrados.
+    return jsonify(
+        mensaje="si el email existe, se envio un link de restablecimiento")
 
 
 @auth.route("/reset-password/confirmar", methods=["POST"])

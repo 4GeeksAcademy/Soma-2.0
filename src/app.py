@@ -32,9 +32,17 @@ ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), '../dist/')
 app = Flask(__name__)
+
 origenes_permitidos = os.environ.get(
     "FRONTEND_URL", "http://localhost:3000"
 ).split(",")
+
+# En desarrollo/Codespaces permitimos * para no bloquear URLs dinamicas;
+# en produccion se respeta estrictamente el allowlist de FRONTEND_URL.
+if ENV == "development":
+    CORS(app, resources={r"/*": {"origins": "*"}})
+else:
+    CORS(app, origins=origenes_permitidos)
 
 
 app.url_map.strict_slashes = False
@@ -42,7 +50,8 @@ app.url_map.strict_slashes = False
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
-    # psycopg v3 (no psycopg2-binary -- sin wheels para Python 3.14+) requiere el driver explicito
+    # psycopg v3 (no psycopg2-binary -- sin wheels para Python 3.14+) requiere
+    # el driver explicito
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
     elif db_url.startswith("postgresql://") and "+psycopg" not in db_url:
@@ -91,7 +100,7 @@ app.register_blueprint(clinica)
 app.register_blueprint(invites)
 app.register_blueprint(portal)
 
-CORS(app, origins=origenes_permitidos)
+
 # Handle/serialize errors like a JSON object
 
 
