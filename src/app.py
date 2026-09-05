@@ -22,14 +22,15 @@ from api.dashboard import dashboard
 from api.ventas import ventas
 from api.clinica import clinica
 from api.invites import invites
+from api.portal import portal
 from api.admin import setup_admin
 from api.commands import setup_commands
 
 # from models import Person
 
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
-static_file_dir = os.path.join(os.path.dirname(
-    os.path.realpath(__file__)), '../dist/')
+static_file_dir = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), '../dist/')
 app = Flask(__name__)
 
 origenes_permitidos = os.environ.get(
@@ -54,7 +55,8 @@ if db_url is not None:
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
     elif db_url.startswith("postgresql://") and "+psycopg" not in db_url:
-        db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        db_url = db_url.replace(
+            "postgresql://", "postgresql+psycopg://", 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
@@ -83,7 +85,7 @@ setup_admin(app)
 # add the admin
 setup_commands(app)
 
-# Add all endpoints form the API with a "api" prefix
+# Add all endpoints form the API with an "api" prefix
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(auth)
 app.register_blueprint(espacios)
@@ -96,6 +98,7 @@ app.register_blueprint(dashboard)
 app.register_blueprint(ventas)
 app.register_blueprint(clinica)
 app.register_blueprint(invites)
+app.register_blueprint(portal)
 
 
 # Handle/serialize errors like a JSON object

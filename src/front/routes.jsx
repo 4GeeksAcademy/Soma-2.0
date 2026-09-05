@@ -1,6 +1,7 @@
 import { createBrowserRouter, createRoutesFromElements, Route } from "react-router-dom";
 
 import { Layout } from "./pages/Layout";
+import { ClienteLayout } from "./pages/ClienteLayout";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { OlvidePassword } from "./pages/OlvidePassword";
@@ -20,6 +21,7 @@ import { GenerarInvite } from "./pages/GenerarInvite";
 import { RedimirInvite } from "./pages/RedimirInvite";
 import { Paquetes } from "./pages/Paquetes";
 import { Recibo } from "./pages/Recibo";
+import { ClienteDashboard } from "./pages/ClienteDashboard";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter(
@@ -36,6 +38,7 @@ export const router = createBrowserRouter(
 			<Route path="/invite/:token" element={<RedimirInvite />} errorElement={<h1>Not found!</h1>} />
 
 			<Route path="/app" element={<ProtectedRoute />} errorElement={<h1>Not found!</h1>}>
+				{/* Staff application */}
 				<Route element={<Layout />}>
 					<Route index element={<AppIndexRedirect />} />
 					<Route path="dashboard" element={<DashboardAdmin />} />
@@ -51,6 +54,11 @@ export const router = createBrowserRouter(
 					<Route path="perfil" element={<Perfil />} />
 					<Route path="invitaciones" element={<GenerarInvite />} />
 					<Route path="paquetes" element={<Paquetes />} />
+				</Route>
+
+				{/* Client portal */}
+				<Route path="cliente" element={<ClienteLayout />}>
+					<Route index element={<ClienteDashboard />} />
 				</Route>
 			</Route>
 		</>

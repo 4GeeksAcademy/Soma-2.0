@@ -1,10 +1,10 @@
-import enum
-from datetime import datetime
-
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Float, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Float, UniqueConstraint
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+import enum
+
 
 db = SQLAlchemy()
 
@@ -123,10 +123,8 @@ class Cita(db.Model):
         ForeignKey("servicio.id"), nullable=True)
     servicio: Mapped["Servicio"] = relationship(foreign_keys=[servicio_id])
 
-    # PaquetePacienteSesion aun no existe en el repo -- se agrega la FK real
-    # cuando esa tabla aterrice (ver docs/modelo-datos.md).
     paquete_paciente_sesion_id: Mapped[int | None] = mapped_column(
-        Integer, nullable=True)
+        ForeignKey("paquete_paciente_sesion.id"), nullable=True)
 
     especialista_id: Mapped[int] = mapped_column(
         ForeignKey("usuario.id"), nullable=False)
@@ -398,6 +396,8 @@ class PaquetePaciente(db.Model):
         nullable=False
     )
 
+    paquete: Mapped["Paquete | None"] = relationship()
+
     def serialize(self):
         return {
             "id": self.id,
@@ -418,6 +418,59 @@ class PaquetePaciente(db.Model):
                 if isinstance(self.estado, enum.Enum)
                 else self.estado
             ),
+        }
+
+
+# ============================================================
+# PaquetePacienteSesion
+# Sesión individual dentro de un paquete comprado
+# ============================================================
+
+class EstadoPaquetePacienteSesion(str, enum.Enum):
+    PENDIENTE = "pendiente"
+    APLICADA = "aplicada"
+
+
+class PaquetePacienteSesion(db.Model):
+    __tablename__ = "paquete_paciente_sesion"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    paquete_paciente_id: Mapped[int] = mapped_column(
+        ForeignKey("paquete_paciente.id"), nullable=False
+    )
+
+    servicio_id: Mapped[int] = mapped_column(
+        ForeignKey("servicio.id"), nullable=False
+    )
+
+    estado: Mapped[EstadoPaquetePacienteSesion] = mapped_column(
+        Enum(EstadoPaquetePacienteSesion),
+        default=EstadoPaquetePacienteSesion.PENDIENTE,
+        nullable=False
+    )
+
+    cita_id: Mapped[int | None] = mapped_column(
+        ForeignKey("cita.id"), nullable=True
+    )
+
+    servicio: Mapped["Servicio"] = relationship()
+
+    cita: Mapped["Cita | None"] = relationship(
+        foreign_keys=[cita_id]
+    )
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "paquete_paciente_id": self.paquete_paciente_id,
+            "servicio_id": self.servicio_id,
+            "estado": (
+                self.estado.value
+                if isinstance(self.estado, enum.Enum)
+                else self.estado
+            ),
+            "cita_id": self.cita_id,
         }
 
 

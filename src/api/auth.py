@@ -1,17 +1,20 @@
-import os
-import secrets
-from datetime import datetime, timedelta
-
-from flask import Blueprint, current_app, jsonify, redirect, request
-from flask_cors import CORS
-from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity, verify_jwt_in_request
-from flask_mail import Message
-
+from api.models import Clinica, Paciente, Usuario, db
+from api.extensions import mail
+from api import google_calendar
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-from api import google_calendar
-from api.extensions import mail
-from api.models import Clinica, Paciente, Usuario, db
+from flask_mail import Message
+from flask_jwt_extended import (
+    create_access_token,
+    decode_token,
+    get_jwt_identity,
+    verify_jwt_in_request,
+)
+from flask_cors import CORS
+from flask import Blueprint, current_app, jsonify, redirect, request
+from datetime import datetime, timedelta
+import secrets
+import os
 
 auth = Blueprint("auth", __name__, url_prefix="/api/auth")
 CORS(auth)
@@ -46,30 +49,66 @@ def login():
     if not email or not password:
         return jsonify(error="email y password son requeridos"), 400
 
+    # Staff login
     # email es global y unico (#66) -- no hace falta pedir la clinica aparte,
     # el Usuario encontrado ya trae su propio clinica_id.
     usuario = Usuario.query.filter_by(email=email).first()
 
-    if not usuario or not usuario.activo or not usuario.check_password(
-            password):
-        return jsonify(error="credenciales inválidas"), 401
+    if usuario and usuario.activo and usuario.check_password(password):
+        clinica = Clinica.query.get(usuario.clinica_id)
 
-    clinica = Clinica.query.get(usuario.clinica_id)
+        access_token = create_access_token(
+            identity=str(usuario.id),
+            additional_claims={
+                "rol": usuario.rol.value,
+                "nombre": usuario.nombre,
+                "clinica_id": usuario.clinica_id,
+            },
+            expires_delta=timedelta(hours=8),
+        )
 
-    access_token = create_access_token(
-        identity=str(usuario.id),
-        additional_claims={
-            "rol": usuario.rol.value,
-            "nombre": usuario.nombre,
-            "clinica_id": usuario.clinica_id,
-        },
-        expires_delta=timedelta(hours=8),
-    )
+        return jsonify(
+            access_token=access_token,
+            usuario=usuario.serialize(),
+            clinica=clinica.serialize(),
+        )
 
-    return jsonify(
-        access_token=access_token,
-        usuario=usuario.serialize(),
-        clinica=clinica.serialize())
+    # Client login
+    # Clients authenticate through Paciente credentials created by Issue #68.
+    paciente = Paciente.query.filter_by(email=email).first()
+
+    if paciente and paciente.activo and paciente.check_password(password):
+        clinica = Clinica.query.get(paciente.clinica_id)
+
+        usuario_cliente = {
+            **paciente.serialize(),
+            "id": paciente.id,
+            "nombre": paciente.nombre_completo,
+            "rol": "cliente",
+            "paciente_id": paciente.id,
+            "clinica_id": paciente.clinica_id,
+            "debe_cambiar_password": False,
+        }
+
+        access_token = create_access_token(
+            identity=str(paciente.id),
+            additional_claims={
+                "rol": "cliente",
+                "nombre": paciente.nombre_completo,
+                "paciente_id": paciente.id,
+                "clinica_id": paciente.clinica_id,
+            },
+            expires_delta=timedelta(hours=8),
+        )
+
+        return jsonify(
+            access_token=access_token,
+            usuario=usuario_cliente,
+            clinica=clinica.serialize(),
+        )
+
+    return jsonify(error="credenciales inválidas"), 401
+
 
 @auth.route("/google", methods=["POST"])
 def login_google():
@@ -163,6 +202,7 @@ def login_google():
     return jsonify(
         error="No existe una cuenta registrada con este correo. La cuenta debe ser creada previamente por un administrador o mediante una invitación."
     ), 404
+
 
 @auth.route("/google/callback", methods=["GET"])
 def google_calendar_callback():
@@ -273,8 +313,9 @@ def solicitar_reset_password():
     if usuario:
         token = secrets.token_urlsafe(32)
         usuario.reset_token = token
-        usuario.reset_token_expira = datetime.utcnow(
-        ) + timedelta(hours=RESET_TOKEN_VIGENCIA_HORAS)
+        usuario.reset_token_expira = datetime.utcnow() + timedelta(
+            hours=RESET_TOKEN_VIGENCIA_HORAS
+        )
         db.session.commit()
         _enviar_email_reset(usuario, token)
 
@@ -294,7 +335,11 @@ def confirmar_reset_password():
         return jsonify(error="token y password_nueva son requeridos"), 400
 
     usuario = Usuario.query.filter_by(reset_token=token).first()
-    if not usuario or not usuario.reset_token_expira or usuario.reset_token_expira < datetime.utcnow():
+    if (
+        not usuario
+        or not usuario.reset_token_expira
+        or usuario.reset_token_expira < datetime.utcnow()
+    ):
         return jsonify(error="token invalido o expirado"), 400
 
     usuario.set_password(password_nueva)
