@@ -80,3 +80,9 @@ def downgrade():
 
     # Finally remove the table.
     op.drop_table("paquete_paciente_sesion")
+
+    # Postgres no borra el tipo ENUM al borrar la tabla, hay que hacerlo
+    # explicito o queda huerfano y el proximo upgrade truena con
+    # "ya existe un tipo estadopaquetepacientesesion".
+    sa.Enum(name="estadopaquetepacientesesion").drop(
+        op.get_bind(), checkfirst=True)
