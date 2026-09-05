@@ -181,8 +181,6 @@ class Paciente(db.Model):
     nombre_completo: Mapped[str] = mapped_column(String(120), nullable=False)
     cedula: Mapped[str] = mapped_column(String(50), nullable=False)
     telefono: Mapped[str] = mapped_column(String(20), nullable=False)
-    email: Mapped[str | None] = mapped_column(
-        String(120), unique=True, nullable=True)
     ocupacion: Mapped[str | None] = mapped_column(
         String(120), nullable=True)
     edad: Mapped[int | None] = mapped_column(Integer, nullable=True)
