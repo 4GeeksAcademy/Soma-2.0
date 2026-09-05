@@ -18,21 +18,23 @@ CORS(auth)
 
 RESET_TOKEN_VIGENCIA_HORAS = 1
 
+
 def verificar_token_google(token: str) -> dict:
-        """Valida la firma y audiencia del ID Token de Google y retorna el payload decodificado.
+    """Valida la firma y audiencia del ID Token de Google y retorna el payload decodificado.
 
-        Lanza ValueError si el token es inválido o expiró, o RuntimeError si falta la configuración.
-        Exportada para ser reutilizada por otros módulos como la redención de invitaciones (#68).
-        """
-        client_id = os.environ.get("GOOGLE_AUTH_CLIENT_ID")
-        if not client_id:
-            raise RuntimeError("GOOGLE_AUTH_CLIENT_ID no está configurado en el servidor")
+    Lanza ValueError si el token es inválido o expiró, o RuntimeError si falta la configuración.
+    Exportada para ser reutilizada por otros módulos como la redención de invitaciones (#68).
+    """
+    client_id = os.environ.get("GOOGLE_AUTH_CLIENT_ID")
+    if not client_id:
+        raise RuntimeError(
+            "GOOGLE_AUTH_CLIENT_ID no está configurado en el servidor")
 
-        return id_token.verify_oauth2_token(
-            token,
-            google_requests.Request(),
-            client_id
-        )
+    return id_token.verify_oauth2_token(
+        token,
+        google_requests.Request(),
+        client_id
+    )
 
 
 @auth.route("/login", methods=["POST"])
@@ -80,7 +82,8 @@ def login_google():
         return jsonify(
             error="El token de credencial de Google es requerido"), 400
 
-    # 1. Validar firma y audiencia del ID Token contra Google usando la función reutilizable
+    # 1. Validar firma y audiencia del ID Token contra Google usando la
+    # función reutilizable
     try:
         idinfo = verificar_token_google(token)
     except ValueError as e:
@@ -94,7 +97,8 @@ def login_google():
         return jsonify(
             error="El token de Google no contiene un correo verificado"), 400
 
-    # 2. Caso A: Si coincide con un Usuario.email (Staff: admin, asistente, especialista)
+    # 2. Caso A: Si coincide con un Usuario.email (Staff: admin, asistente,
+    # especialista)
     usuario = Usuario.query.filter_by(email=email).first()
     if usuario:
         if not usuario.activo:
@@ -103,7 +107,8 @@ def login_google():
 
         # Si aún no tenía vinculado el google_id, vincularlo ahora
         google_id = idinfo.get("sub")
-        if google_id and hasattr(usuario, "google_id") and not usuario.google_id:
+        if google_id and hasattr(
+                usuario, "google_id") and not usuario.google_id:
             usuario.google_id = google_id
             db.session.commit()
 
@@ -113,14 +118,14 @@ def login_google():
         }
         client_id = os.environ.get("GOOGLE_AUTH_CLIENT_ID")
         if not client_id:
-            raise RuntimeError("GOOGLE_AUTH_CLIENT_ID no está configurado en el servidor")
+            raise RuntimeError(
+                "GOOGLE_AUTH_CLIENT_ID no está configurado en el servidor")
 
         return id_token.verify_oauth2_token(
             token,
             google_requests.Request(),
             client_id
         )
-
 
     @auth.route("/google", methods=["POST"])
     def login_google():
@@ -132,7 +137,8 @@ def login_google():
             return jsonify(
                 error="El token de credencial de Google es requerido"), 400
 
-        # 1. Validar firma y audiencia del ID Token contra Google usando la función reutilizable
+        # 1. Validar firma y audiencia del ID Token contra Google usando la
+        # función reutilizable
         try:
             idinfo = verificar_token_google(token)
         except ValueError as e:
@@ -146,7 +152,8 @@ def login_google():
             return jsonify(
                 error="El token de Google no contiene un correo verificado"), 400
 
-        # 2. Caso A: Si coincide con un Usuario.email (Staff: admin, asistente, especialista)
+        # 2. Caso A: Si coincide con un Usuario.email (Staff: admin, asistente,
+        # especialista)
         usuario = Usuario.query.filter_by(email=email).first()
         if usuario:
             if not usuario.activo:
@@ -155,7 +162,8 @@ def login_google():
 
             # Si aún no tenía vinculado el google_id, vincularlo ahora
             google_id = idinfo.get("sub")
-            if google_id and hasattr(usuario, "google_id") and not usuario.google_id:
+            if google_id and hasattr(
+                    usuario, "google_id") and not usuario.google_id:
                 usuario.google_id = google_id
                 db.session.commit()
 
@@ -178,11 +186,13 @@ def login_google():
                 tipo="staff"
             ), 200
 
-        # 3. Caso B: Si coincide con un Paciente.email (Clientes / Portal de paciente)
+        # 3. Caso B: Si coincide con un Paciente.email (Clientes / Portal de
+        # paciente)
         paciente = Paciente.query.filter_by(email=email).first()
         if paciente:
             google_id = idinfo.get("sub")
-            if google_id and hasattr(paciente, "google_id") and not paciente.google_id:
+            if google_id and hasattr(
+                    paciente, "google_id") and not paciente.google_id:
                 paciente.google_id = google_id
                 db.session.commit()
 
