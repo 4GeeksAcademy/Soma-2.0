@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { getMisCitas, getMiHistorialClinico, getMiSaldo, getMisPaquetes } from "../services/portal";
 
+const formatMoney = (amount) => {
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+		maximumFractionDigits: 2
+	}).format(amount || 0);
+};
+
 export const ClienteDashboard = () => {
 	const { store } = useGlobalReducer();
 
@@ -69,7 +77,7 @@ export const ClienteDashboard = () => {
 
 						<div className="rounded-md border border-ink/[0.08] bg-paper p-6">
 							<p className="text-[13px] text-ink-soft">Total pendiente</p>
-							<p className="mt-1 text-3xl font-semibold">₡{Number(saldo?.saldo ?? 0).toFixed(2)}</p>
+							<p className="mt-1 text-3xl font-semibold">{formatMoney(saldo?.saldo)}</p>
 						</div>
 					</section>
 
@@ -84,7 +92,7 @@ export const ClienteDashboard = () => {
 							<div className="space-y-4">
 								{paquetes.map((paquete) => (
 									<div key={paquete.id} className="rounded-md border border-ink/[0.08] bg-paper p-5">
-										<p className="font-semibold">Paquete #{paquete.paquete_id}</p>
+										<p className="font-semibold">Paquete {paquete.paquete}</p>
 
 										<p className="mt-1 text-[14px] text-ink-soft">
 											Fecha de compra: {new Date(paquete.fecha_compra).toLocaleDateString()}

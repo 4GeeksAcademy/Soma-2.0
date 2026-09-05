@@ -25,58 +25,42 @@ import { ClienteDashboard } from "./pages/ClienteDashboard";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter(
-    createRoutesFromElements(
-        <>
-            <Route path="/" element={<Landing />} errorElement={<h1>Not found!</h1>} />
+	createRoutesFromElements(
+		<>
+			<Route path="/" element={<Landing />} errorElement={<h1>Not found!</h1>} />
 
-            <Route path="/login" element={<Login />} errorElement={<h1>Not found!</h1>} />
+			<Route path="/login" element={<Login />} errorElement={<h1>Not found!</h1>} />
 
-            <Route
-                path="/olvide-password"
-                element={<OlvidePassword />}
-                errorElement={<h1>Not found!</h1>}
-            />
+			<Route path="/olvide-password" element={<OlvidePassword />} errorElement={<h1>Not found!</h1>} />
 
-            <Route
-                path="/restablecer-password"
-                element={<RestablecerPassword />}
-                errorElement={<h1>Not found!</h1>}
-            />
+			<Route path="/restablecer-password" element={<RestablecerPassword />} errorElement={<h1>Not found!</h1>} />
 
-            <Route
-                path="/invite/:token"
-                element={<RedimirInvite />}
-                errorElement={<h1>Not found!</h1>}
-            />
+			<Route path="/invite/:token" element={<RedimirInvite />} errorElement={<h1>Not found!</h1>} />
 
-            <Route
-                path="/app"
-                element={<ProtectedRoute />}
-                errorElement={<h1>Not found!</h1>}
-            >
-                {/* Staff application */}
-                <Route element={<Layout />}>
-                    <Route index element={<AppIndexRedirect />} />
-                    <Route path="dashboard" element={<DashboardAdmin />} />
-                    <Route path="single/:theId" element={<Single />} />
-                    <Route path="demo" element={<Demo />} />
-                    <Route path="espacios" element={<Espacios />} />
-                    <Route path="agenda" element={<Agenda />} />
-                    <Route path="pacientes" element={<ListaPacientes />} />
-                    <Route path="pacientes/nuevo" element={<NuevoPaciente />} />
-                    <Route path="nuevo-servicio" element={<NuevoServicio />} />
-                    <Route path="ventas" element={<Ventas />} />
-                    <Route path="ventas/:id/recibo" element={<Recibo />} />
-                    <Route path="perfil" element={<Perfil />} />
-                    <Route path="invitaciones" element={<GenerarInvite />} />
-                    <Route path="paquetes" element={<Paquetes />} />
-                </Route>
+			<Route path="/app" element={<ProtectedRoute />} errorElement={<h1>Not found!</h1>}>
+				{/* Staff application */}
+				<Route element={<Layout />}>
+					<Route index element={<AppIndexRedirect />} />
+					<Route path="dashboard" element={<DashboardAdmin />} />
+					<Route path="single/:theId" element={<Single />} />
+					<Route path="demo" element={<Demo />} />
+					<Route path="espacios" element={<Espacios />} />
+					<Route path="agenda" element={<Agenda />} />
+					<Route path="pacientes" element={<ListaPacientes />} />
+					<Route path="pacientes/nuevo" element={<NuevoPaciente />} />
+					<Route path="nuevo-servicio" element={<NuevoServicio />} />
+					<Route path="ventas" element={<Ventas />} />
+					<Route path="ventas/:id/recibo" element={<Recibo />} />
+					<Route path="perfil" element={<Perfil />} />
+					<Route path="invitaciones" element={<GenerarInvite />} />
+					<Route path="paquetes" element={<Paquetes />} />
+				</Route>
 
-                {/* Client portal */}
-                <Route path="cliente" element={<ClienteLayout />}>
-                    <Route index element={<ClienteDashboard />} />
-                </Route>
-            </Route>
-        </>
-    )
+				{/* Client portal */}
+				<Route path="cliente" element={<ClienteLayout />}>
+					<Route index element={<ClienteDashboard />} />
+				</Route>
+			</Route>
+		</>
+	)
 );
