@@ -5,6 +5,7 @@ set -o errexit
 npm install
 npm run build
 
-pipenv install
+python -m pip install pipenv
+python -m pipenv install --deploy
 
-pipenv run upgrade
+python -m pipenv run upgrade
