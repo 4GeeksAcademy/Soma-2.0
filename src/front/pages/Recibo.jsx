@@ -46,7 +46,7 @@ export const Recibo = () => {
 		);
 	}
 
-	const { venta, concepto, clinica_nombre, paciente_nombre, paciente_telefono } = datos;
+	const { venta, conceptos, clinica_nombre, paciente_nombre, paciente_telefono } = datos;
 
 	return (
 		<div className="mx-auto max-w-2xl px-6 py-10 print:max-w-full print:p-0">
@@ -87,11 +87,13 @@ export const Recibo = () => {
 							<th className="pb-2 text-right">Monto</th>
 						</tr>
 					</thead>
-					<tbody>
-						<tr>
-							<td className="py-2 text-ink">{concepto}</td>
-							<td className="py-2 text-right font-medium text-ink">{formatMoney(venta.monto_total)}</td>
-						</tr>
+					<tbody className="divide-y divide-ink/[0.06]">
+						{conceptos.map((item, index) => (
+							<tr key={index}>
+								<td className="py-2 text-ink">{item.nombre}</td>
+								<td className="py-2 text-right font-medium text-ink">{formatMoney(item.monto)}</td>
+							</tr>
+						))}
 					</tbody>
 				</table>
 

@@ -100,9 +100,9 @@ export const Perfil = () => {
 				) : estado?.conectado ? (
 					<>
 						<p className="mb-4 text-[14px] text-ink-soft">
-							Conectado como <span className="font-semibold text-ink">{estado.cuenta_email}</span>. Las citas de esta
-							clínica se sincronizan a ese calendario, y cada especialista recibe notificación solo de sus propias
-							citas.
+							Conectado como <span className="font-semibold text-ink">{estado.cuenta_email}</span>. Se creó un
+							calendario dedicado a esta clínica (separado de tu calendario personal) donde se sincronizan las citas,
+							compartido de solo lectura con tus asistentes y especialistas.
 						</p>
 						<button
 							onClick={handleDesconectar}
@@ -116,7 +116,8 @@ export const Perfil = () => {
 					<>
 						<p className="mb-4 text-[14px] text-ink-soft">
 							Todavía no has conectado un calendario — las citas se van a seguir creando en Soma normalmente, solo no
-							aparecerán en Google Calendar hasta que conectes una cuenta.
+							aparecerán en Google Calendar hasta que conectes una cuenta. Al conectar, se crea un calendario nuevo y
+							dedicado (no tu calendario personal) y se comparte automáticamente con tus asistentes y especialistas.
 						</p>
 						<button
 							onClick={handleConectar}

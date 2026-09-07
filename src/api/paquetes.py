@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from api.decorators import clinica_id_actual, rol_requerido
-from api.models import Paquete, PaqueteServicio, Servicio, db
+from api.models import EstadoPaquete, Paciente, Paquete, PaquetePaciente, PaqueteServicio, Servicio, db
 
 
 paquetes = Blueprint("paquetes", __name__, url_prefix="/api/paquetes")
@@ -14,6 +14,32 @@ def listar_paquetes():
     return jsonify([
         {**paquete.serialize(), "servicios": [detalle.serialize() for detalle in paquete.servicios]}
         for paquete in lista
+    ])
+
+
+@paquetes.route("/paciente/<int:paciente_id>", methods=["GET"])
+@rol_requerido("admin", "asistente")
+# Paquetes ya comprados por un paciente (PaquetePaciente), para venderle una
+# sesion desde Ventas -- no confundir con /api/paquetes (el catalogo). Solo
+# activos: no tiene sentido cobrar una sesion de un paquete ya agotado.
+def listar_paquetes_de_paciente(paciente_id):
+    clinica_id = clinica_id_actual()
+
+    if not Paciente.query.filter_by(id=paciente_id, clinica_id=clinica_id).first():
+        return jsonify(error="El paciente especificado no existe"), 404
+
+    lista = PaquetePaciente.query.filter_by(
+        paciente_id=paciente_id,
+        clinica_id=clinica_id,
+        estado=EstadoPaquete.ACTIVO,
+    ).all()
+
+    return jsonify([
+        {
+            **paquete_pac.serialize(),
+            "paquete_nombre": paquete_pac.paquete.nombre if paquete_pac.paquete else None,
+        }
+        for paquete_pac in lista
     ])
 
 

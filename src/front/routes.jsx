@@ -12,10 +12,12 @@ import { Espacios } from "./pages/Espacios";
 import { Agenda } from "./pages/Agenda";
 import { Ventas } from "./pages/Ventas";
 import { DashboardAdmin } from "./pages/DashboardAdmin";
+import { MisCitasEspecialista } from "./pages/MisCitasEspecialista";
 import { AppIndexRedirect } from "./components/AppIndexRedirect";
 import { NuevoServicio } from "./pages/NuevoServicio";
 import { ListaPacientes } from "./pages/ListaPacientes";
 import { NuevoPaciente } from "./pages/NuevoPaciente";
+import { FichaPaciente } from "./pages/FichaPaciente";
 import { Perfil } from "./pages/Perfil";
 import { GenerarInvite } from "./pages/GenerarInvite";
 import { RedimirInvite } from "./pages/RedimirInvite";
@@ -42,12 +44,14 @@ export const router = createBrowserRouter(
 				<Route element={<Layout />}>
 					<Route index element={<AppIndexRedirect />} />
 					<Route path="dashboard" element={<DashboardAdmin />} />
+					<Route path="mis-citas" element={<MisCitasEspecialista />} />
 					<Route path="single/:theId" element={<Single />} />
 					<Route path="demo" element={<Demo />} />
 					<Route path="espacios" element={<Espacios />} />
 					<Route path="agenda" element={<Agenda />} />
 					<Route path="pacientes" element={<ListaPacientes />} />
 					<Route path="pacientes/nuevo" element={<NuevoPaciente />} />
+					<Route path="pacientes/:id" element={<FichaPaciente />} />
 					<Route path="nuevo-servicio" element={<NuevoServicio />} />
 					<Route path="ventas" element={<Ventas />} />
 					<Route path="ventas/:id/recibo" element={<Recibo />} />

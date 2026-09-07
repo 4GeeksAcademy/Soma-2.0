@@ -16,3 +16,6 @@ export const crearPaciente = (token, { nombreCompleto, cedula, telefono }) =>
 
 // GET /api/pacientes -> Trae la lista de todos los pacientes
 export const obtenerPacientes = (token) => request("/api/pacientes", { headers: authHeaders(token) });
+
+// GET /api/pacientes/:id -> ficha completa (datos + citas + historial clínico + paquetes + ventas)
+export const obtenerPaciente = (token, id) => request(`/api/pacientes/${id}`, { headers: authHeaders(token) });

@@ -23,7 +23,14 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 
-from api.models import Clinica
+from api.models import Clinica, RolUsuario, Usuario
+
+# Google agrega "userinfo.profile" al consentimiento aunque no lo pidamos en
+# SCOPES (lo bundlea junto con email/openid) -- oauthlib por defecto truena
+# con "Scope has changed" si el scope que regresa el token no es identico al
+# solicitado. Se checa en tiempo de ejecucion (fetch_token), no al importar,
+# asi que basta con fijarlo aqui una vez.
+os.environ.setdefault("OAUTHLIB_RELAX_TOKEN_SCOPE", "1")
 
 SCOPES = [
     "https://www.googleapis.com/auth/calendar",
@@ -50,7 +57,21 @@ def _client_config():
 
 
 def _construir_flow(redirect_uri):
-    return Flow.from_client_config(_client_config(), scopes=SCOPES, redirect_uri=redirect_uri)
+    # autogenerate_code_verifier=False -- google-auth-oauthlib >=1.x activa PKCE
+    # por defecto, pero genera_url_autorizacion() e intercambiar_codigo() crean
+    # cada uno su propio Flow (son dos requests HTTP separadas, con la
+    # redireccion a Google en medio; no hay forma de reusar el mismo objeto
+    # Flow entre ambas). Sin este flag, el segundo Flow no conoce el
+    # code_verifier que genero el primero y Google responde
+    # "(invalid_grant) Missing code verifier". PKCE no es necesario aqui: es
+    # un cliente confidencial (tiene client_secret), la proteccion la da eso
+    # mas el 'state' firmado, igual que cuando se escribio este codigo.
+    return Flow.from_client_config(
+        _client_config(),
+        scopes=SCOPES,
+        redirect_uri=redirect_uri,
+        autogenerate_code_verifier=False,
+    )
 
 
 def generar_url_autorizacion(state, redirect_uri):
@@ -80,6 +101,13 @@ def intercambiar_codigo(code, redirect_uri):
             email = None
 
     return creds.refresh_token, email
+
+
+def _calendar_id(clinica):
+    # Fallback a "primary" por si una clinica se conecto antes de que existiera
+    # el calendario dedicado (issue #69) y crear_calendario_dedicado fallo o
+    # todavia no corrio para ella.
+    return clinica.google_calendar_id or "primary"
 
 
 def _configurado(clinica):
@@ -132,7 +160,7 @@ def crear_evento(cita):
         evento = (
             _service(clinica)
             .events()
-            .insert(calendarId="primary", body=_cuerpo_evento(cita), sendUpdates="all")
+            .insert(calendarId=_calendar_id(clinica), body=_cuerpo_evento(cita), sendUpdates="all")
             .execute()
         )
         return evento["id"]
@@ -147,7 +175,7 @@ def actualizar_evento(cita):
         return
     try:
         _service(clinica).events().update(
-            calendarId="primary",
+            calendarId=_calendar_id(clinica),
             eventId=cita.google_event_id,
             body=_cuerpo_evento(cita),
             sendUpdates="all",
@@ -162,7 +190,53 @@ def eliminar_evento(cita):
         return
     try:
         _service(clinica).events().delete(
-            calendarId="primary", eventId=cita.google_event_id, sendUpdates="all"
+            calendarId=_calendar_id(clinica), eventId=cita.google_event_id, sendUpdates="all"
         ).execute()
     except Exception as error:
         print(f"[google_calendar] no se pudo eliminar el evento de la cita {cita.id}: {error}")
+
+
+def crear_calendario_dedicado(clinica):
+    """Crea un calendario nuevo y separado del personal/'primary' del Admin,
+    dedicado a esta Clinica (issue #69) -- es el que despues se comparte de
+    solo lectura con asistentes y especialistas. Devuelve el id creado, o
+    None si la integracion no esta configurada o la llamada falla.
+    """
+    if not _configurado(clinica):
+        return None
+    try:
+        calendario = _service(clinica).calendars().insert(
+            body={"summary": f"Soma — {clinica.nombre}", "timeZone": ZONA_HORARIA}
+        ).execute()
+        return calendario["id"]
+    except Exception as error:
+        print(f"[google_calendar] no se pudo crear el calendario dedicado de la clinica {clinica.id}: {error}")
+        return None
+
+
+def compartir_calendario(clinica, email, rol="reader"):
+    """Comparte (ACL) el calendario dedicado de la Clinica con un email. No hace
+    nada si la clinica no esta configurada, no tiene calendario dedicado
+    todavia, o no se proporciona un email (staff sin correo capturado)."""
+    if not email or not _configurado(clinica) or not clinica.google_calendar_id:
+        return
+    try:
+        _service(clinica).acl().insert(
+            calendarId=clinica.google_calendar_id,
+            body={"role": rol, "scope": {"type": "user", "value": email}},
+        ).execute()
+    except Exception as error:
+        print(f"[google_calendar] no se pudo compartir el calendario de la clinica {clinica.id} con {email}: {error}")
+
+
+def compartir_calendario_con_staff(clinica):
+    """Comparte de solo lectura el calendario dedicado con todas las
+    asistentes/especialistas activas de la clinica -- se llama al crear el
+    calendario por primera vez y al redimir un invite nuevo de ese tipo."""
+    staff = Usuario.query.filter(
+        Usuario.clinica_id == clinica.id,
+        Usuario.rol.in_([RolUsuario.ASISTENTE, RolUsuario.ESPECIALISTA]),
+        Usuario.activo.is_(True),
+    ).all()
+    for usuario in staff:
+        compartir_calendario(clinica, usuario.email, rol="reader")

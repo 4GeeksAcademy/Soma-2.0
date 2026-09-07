@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { obtenerPacientes } from "../services/pacientes";
 import { listarServicios } from "../services/servicios";
+import { listarPaquetesDePaciente } from "../services/paquetes";
 import { listarVentas, registrarVenta } from "../services/ventas";
 
 const formatMoney = (amount) => {
@@ -24,9 +25,19 @@ export const Ventas = () => {
 
 	// Estados del formulario
 	const [pacienteId, setPacienteId] = useState("");
-	const [tipoItem, setTipoItem] = useState("servicio"); // "servicio"
-	const [servicioId, setServicioId] = useState("");
-	const [montoTotal, setMontoTotal] = useState("");
+	const [paquetesPaciente, setPaquetesPaciente] = useState([]);
+	const [cargandoPaquetesPaciente, setCargandoPaquetesPaciente] = useState(false);
+
+	// Item que se está armando para agregar a la cuenta
+	const [tipoItemNuevo, setTipoItemNuevo] = useState("servicio"); // "servicio" | "paquete"
+	const [servicioIdNuevo, setServicioIdNuevo] = useState("");
+	const [paqueteIdNuevo, setPaqueteIdNuevo] = useState("");
+	const [montoItemNuevo, setMontoItemNuevo] = useState("");
+
+	// Carrito: items ya agregados a esta cuenta (como la cuenta de un restaurante --
+	// varios servicios/paquetes, un solo total y un solo abono/saldo combinado)
+	const [carrito, setCarrito] = useState([]);
+
 	const [tipoPago, setTipoPago] = useState("completo"); // "completo" | "abono"
 	const [montoAbono, setMontoAbono] = useState("");
 	const [metodoPago, setMetodoPago] = useState("efectivo"); // "efectivo" | "tarjeta" | "transferencia"
@@ -63,36 +74,101 @@ export const Ventas = () => {
 		cargarDatos();
 	}, [cargarDatos]);
 
-	// Auto-completar precio del catálogo al seleccionar servicio
-	const handleSeleccionarServicio = (id) => {
-		setServicioId(id);
-		const servicioEncontrado = servicios.find((s) => String(s.id) === String(id));
-		if (servicioEncontrado) {
-			const precio = Number(servicioEncontrado.precio || 0);
-			setMontoTotal(precio);
-			if (tipoPago === "completo") {
-				setMontoAbono(precio);
-			}
-		} else {
-			setMontoTotal("");
-			setMontoAbono("");
+	// Cargar los paquetes ya comprados por el paciente seleccionado (para poder
+	// venderle una sesión) y vaciar la cuenta en curso al cambiar de paciente.
+	useEffect(() => {
+		setCarrito([]);
+		setServicioIdNuevo("");
+		setPaqueteIdNuevo("");
+		setMontoItemNuevo("");
+
+		if (!pacienteId || !token) {
+			setPaquetesPaciente([]);
+			return;
 		}
+
+		setCargandoPaquetesPaciente(true);
+		listarPaquetesDePaciente(token, pacienteId)
+			.then((res) => setPaquetesPaciente(Array.isArray(res) ? res : []))
+			.catch(() => setPaquetesPaciente([]))
+			.finally(() => setCargandoPaquetesPaciente(false));
+	}, [pacienteId, token]);
+
+	// Total de la cuenta = suma de los items agregados hasta ahora
+	const montoFinalTotal = carrito.reduce((suma, item) => suma + (Number(item.monto) || 0), 0);
+	const montoFinalPago = tipoPago === "completo" ? montoFinalTotal : Number(montoAbono) || 0;
+	const deudaEstimada = Math.max(0, montoFinalTotal - montoFinalPago);
+
+	// Si el pago es "completo", el abono sigue el total conforme se agregan/quitan items
+	useEffect(() => {
+		if (tipoPago === "completo") {
+			setMontoAbono(montoFinalTotal);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [carrito, tipoPago]);
+
+	const paqueteSeleccionadoNuevo = paquetesPaciente.find((p) => String(p.id) === String(paqueteIdNuevo));
+
+	// Auto-completar precio del catálogo al seleccionar servicio para agregar
+	const handleSeleccionarServicioNuevo = (id) => {
+		setServicioIdNuevo(id);
+		const servicioEncontrado = servicios.find((s) => String(s.id) === String(id));
+		setMontoItemNuevo(servicioEncontrado ? String(servicioEncontrado.precio ?? "") : "");
+	};
+
+	// Al elegir un paquete: si es de contado la sesión cuesta $0 (ya se pagó al
+	// comprar el paquete); si es a plazos, el usuario captura la cuota.
+	const handleSeleccionarPaqueteNuevo = (id) => {
+		setPaqueteIdNuevo(id);
+		const paquetePac = paquetesPaciente.find((p) => String(p.id) === String(id));
+		setMontoItemNuevo(paquetePac && paquetePac.forma_pago === "contado" ? "0" : "");
+	};
+
+	const handleAgregarItem = () => {
+		const monto = Number(montoItemNuevo) || 0;
+
+		if (tipoItemNuevo === "servicio") {
+			if (!servicioIdNuevo) return;
+			const servicio = servicios.find((s) => String(s.id) === String(servicioIdNuevo));
+			setCarrito((prev) => [
+				...prev,
+				{
+					uid: `s-${servicioIdNuevo}-${Date.now()}`,
+					tipo: "servicio",
+					servicioId: Number(servicioIdNuevo),
+					nombre: servicio ? servicio.nombre : "Servicio",
+					monto
+				}
+			]);
+			setServicioIdNuevo("");
+		} else {
+			if (!paqueteIdNuevo) return;
+			const paquetePac = paquetesPaciente.find((p) => String(p.id) === String(paqueteIdNuevo));
+			setCarrito((prev) => [
+				...prev,
+				{
+					uid: `p-${paqueteIdNuevo}-${Date.now()}`,
+					tipo: "paquete",
+					paqueteId: Number(paqueteIdNuevo),
+					nombre: paquetePac ? paquetePac.paquete_nombre || `Paquete #${paquetePac.id}` : "Paquete",
+					monto
+				}
+			]);
+			setPaqueteIdNuevo("");
+		}
+
+		setMontoItemNuevo("");
+	};
+
+	const handleQuitarItem = (uid) => {
+		setCarrito((prev) => prev.filter((item) => item.uid !== uid));
 	};
 
 	// Cambiar modo de pago (completo vs abono)
 	const handleTipoPagoChange = (tipo) => {
 		setTipoPago(tipo);
-		if (tipo === "completo") {
-			setMontoAbono(montoTotal);
-		} else {
-			setMontoAbono("");
-		}
+		setMontoAbono(tipo === "completo" ? montoFinalTotal : "");
 	};
-
-	// Cálculo del monto a pagar y deuda estimada
-	const montoFinalTotal = Number(montoTotal) || 0;
-	const montoFinalPago = tipoPago === "completo" ? montoFinalTotal : Number(montoAbono) || 0;
-	const deudaEstimada = Math.max(0, montoFinalTotal - montoFinalPago);
 
 	// Enviar formulario
 	const handleSubmit = async (e) => {
@@ -105,18 +181,13 @@ export const Ventas = () => {
 			return;
 		}
 
-		if (!servicioId) {
-			setError("Debes seleccionar un servicio.");
+		if (carrito.length === 0) {
+			setError("Agrega al menos un servicio o paquete a la cuenta.");
 			return;
 		}
 
-		if (montoFinalTotal <= 0) {
-			setError("El monto total debe ser mayor a 0.");
-			return;
-		}
-
-		if (montoFinalPago <= 0) {
-			setError("El monto a pagar/abonar debe ser mayor a 0.");
+		if (montoFinalPago < 0) {
+			setError("El monto a pagar/abonar no puede ser negativo.");
 			return;
 		}
 
@@ -130,8 +201,11 @@ export const Ventas = () => {
 		try {
 			const payload = {
 				paciente_id: Number(pacienteId),
-				servicio_id: Number(servicioId),
-				monto_total: montoFinalTotal,
+				items: carrito.map((item) =>
+					item.tipo === "servicio"
+						? { servicio_id: item.servicioId, monto: item.monto }
+						: { paquete_paciente_id: item.paqueteId, monto: item.monto }
+				),
 				pago_monto: montoFinalPago,
 				pago_metodo: metodoPago
 			};
@@ -141,9 +215,7 @@ export const Ventas = () => {
 			setExito("¡Venta registrada exitosamente!");
 			// Limpiar formulario
 			setPacienteId("");
-			setServicioId("");
-			setMontoTotal("");
-			setMontoAbono("");
+			setCarrito([]);
 			setTipoPago("completo");
 			setMetodoPago("efectivo");
 
@@ -207,45 +279,126 @@ export const Ventas = () => {
 								</select>
 							</div>
 
-							{/* 2. Selección de Servicio (Catálogo) */}
-							<div>
-								<label className="block text-xs font-semibold uppercase tracking-wider text-ink-soft mb-1.5">
-									Servicio del Catálogo *
+							{/* 2. Agregar servicios/paquetes a la cuenta */}
+							<div className="space-y-3 rounded-xl border border-ink/[0.1] bg-nude/20 p-3.5">
+								<label className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">
+									Agregar a la cuenta
 								</label>
-								<select
-									value={servicioId}
-									onChange={(e) => handleSeleccionarServicio(e.target.value)}
-									disabled={cargandoCatalogos}
-									required
-									className="w-full rounded-xl border border-ink/[0.15] bg-white px-3.5 py-2.5 text-sm text-ink focus:border-ink focus:outline-none"
-								>
-									<option value="">-- Seleccionar Servicio --</option>
-									{servicios.map((s) => (
-										<option key={s.id} value={s.id}>
-											{s.nombre} — {formatMoney(s.precio)}
-										</option>
-									))}
-								</select>
+
+								<div className="grid grid-cols-2 gap-2">
+									<button
+										type="button"
+										onClick={() => setTipoItemNuevo("servicio")}
+										className={`rounded-xl py-2 text-xs font-semibold transition-all ${
+											tipoItemNuevo === "servicio"
+												? "bg-ink text-paper shadow-sm"
+												: "border border-ink/[0.15] bg-white text-ink-soft hover:bg-nude"
+										}`}
+									>
+										Servicio
+									</button>
+									<button
+										type="button"
+										onClick={() => setTipoItemNuevo("paquete")}
+										className={`rounded-xl py-2 text-xs font-semibold transition-all ${
+											tipoItemNuevo === "paquete"
+												? "bg-ink text-paper shadow-sm"
+												: "border border-ink/[0.15] bg-white text-ink-soft hover:bg-nude"
+										}`}
+									>
+										Paquete del paciente
+									</button>
+								</div>
+
+								{tipoItemNuevo === "servicio" ? (
+									<select
+										value={servicioIdNuevo}
+										onChange={(e) => handleSeleccionarServicioNuevo(e.target.value)}
+										disabled={cargandoCatalogos}
+										className="w-full rounded-xl border border-ink/[0.15] bg-white px-3.5 py-2.5 text-sm text-ink focus:border-ink focus:outline-none"
+									>
+										<option value="">-- Seleccionar Servicio --</option>
+										{servicios.map((s) => (
+											<option key={s.id} value={s.id}>
+												{s.nombre} — {formatMoney(s.precio)}
+											</option>
+										))}
+									</select>
+								) : !pacienteId ? (
+									<p className="text-xs text-ink-soft">Selecciona un paciente primero.</p>
+								) : cargandoPaquetesPaciente ? (
+									<p className="text-xs text-ink-soft">Cargando paquetes…</p>
+								) : paquetesPaciente.length === 0 ? (
+									<p className="text-xs text-ink-soft">Este paciente no tiene paquetes activos.</p>
+								) : (
+									<select
+										value={paqueteIdNuevo}
+										onChange={(e) => handleSeleccionarPaqueteNuevo(e.target.value)}
+										className="w-full rounded-xl border border-ink/[0.15] bg-white px-3.5 py-2.5 text-sm text-ink focus:border-ink focus:outline-none"
+									>
+										<option value="">-- Seleccionar Paquete --</option>
+										{paquetesPaciente.map((p) => (
+											<option key={p.id} value={p.id}>
+												{p.paquete_nombre || `Paquete #${p.id}`} ({p.forma_pago === "contado" ? "contado" : "a plazos"})
+											</option>
+										))}
+									</select>
+								)}
+
+								<div className="flex items-end gap-2">
+									<div className="flex-1">
+										<label className="mb-1 block text-[11px] font-medium text-ink-soft">Monto de este item</label>
+										<input
+											type="number"
+											step="0.01"
+											min="0"
+											value={montoItemNuevo}
+											onChange={(e) => setMontoItemNuevo(e.target.value)}
+											disabled={tipoItemNuevo === "paquete" && paqueteSeleccionadoNuevo?.forma_pago === "contado"}
+											placeholder="0.00"
+											className="w-full rounded-xl border border-ink/[0.15] bg-white px-3.5 py-2 text-sm font-semibold text-ink focus:border-ink focus:outline-none disabled:bg-ink/[0.03]"
+										/>
+									</div>
+									<button
+										type="button"
+										onClick={handleAgregarItem}
+										disabled={tipoItemNuevo === "servicio" ? !servicioIdNuevo : !paqueteIdNuevo}
+										className="shrink-0 rounded-xl bg-ink px-4 py-2.5 text-xs font-bold text-paper hover:bg-cafe disabled:opacity-40"
+									>
+										+ Agregar
+									</button>
+								</div>
 							</div>
 
-							{/* 3. Precio Total (Autocompletado) */}
+							{/* 3. Cuenta actual (carrito) */}
 							<div>
-								<label className="block text-xs font-semibold uppercase tracking-wider text-ink-soft mb-1.5">
-									Precio Total
+								<label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-soft">
+									Cuenta actual {carrito.length > 0 ? `(${carrito.length})` : ""}
 								</label>
-								<input
-									type="number"
-									step="0.01"
-									min="0"
-									value={montoTotal}
-									onChange={(e) => {
-										setMontoTotal(e.target.value);
-										if (tipoPago === "completo") setMontoAbono(e.target.value);
-									}}
-									placeholder="0.00"
-									required
-									className="w-full rounded-xl border border-ink/[0.15] bg-white px-3.5 py-2.5 text-sm font-semibold text-ink focus:border-ink focus:outline-none"
-								/>
+								{carrito.length === 0 ? (
+									<p className="rounded-xl border border-dashed border-ink/[0.15] p-3 text-xs text-ink-soft">
+										Todavía no has agregado nada a la cuenta.
+									</p>
+								) : (
+									<ul className="divide-y divide-ink/[0.06] rounded-xl border border-ink/[0.1] bg-white">
+										{carrito.map((item) => (
+											<li key={item.uid} className="flex items-center justify-between gap-2 px-3.5 py-2 text-xs">
+												<span className="text-ink">{item.nombre}</span>
+												<span className="flex items-center gap-2">
+													<span className="font-semibold text-ink">{formatMoney(item.monto)}</span>
+													<button
+														type="button"
+														onClick={() => handleQuitarItem(item.uid)}
+														aria-label={`Quitar ${item.nombre}`}
+														className="text-ink-soft hover:text-red-600"
+													>
+														✕
+													</button>
+												</span>
+											</li>
+										))}
+									</ul>
+								)}
 							</div>
 
 							{/* 4. Modalidad de Pago: Pago Completo o Abono */}
@@ -289,7 +442,7 @@ export const Ventas = () => {
 										type="number"
 										step="0.01"
 										min="0.01"
-										max={montoTotal || undefined}
+										max={montoFinalTotal || undefined}
 										value={montoAbono}
 										onChange={(e) => setMontoAbono(e.target.value)}
 										placeholder="Ingrese monto del abono"

@@ -8,8 +8,9 @@ from flask import Blueprint, current_app, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import get_jwt_identity
 
+from api import google_calendar
 from api.decorators import clinica_id_actual, rol_requerido
-from api.models import Invite, Paciente, RolUsuario, TipoInvite, Usuario, db
+from api.models import Clinica, Invite, Paciente, RolUsuario, TipoInvite, Usuario, db
 
 invites = Blueprint("invites", __name__, url_prefix="/api/invites")
 CORS(invites)
@@ -134,5 +135,13 @@ def redimir_invite(token):
 
     invite.usado = True
     db.session.commit()
+
+    # Si la clinica ya tiene un calendario dedicado conectado (issue #69), la
+    # nueva asistente/especialista queda con acceso de lectura desde ya --
+    # sin esto tendria que esperar a que un Admin la comparta a mano.
+    if invite.tipo != TipoInvite.CLIENTE:
+        clinica_obj = Clinica.query.get(invite.clinica_id)
+        if clinica_obj and clinica_obj.google_calendar_id:
+            google_calendar.compartir_calendario(clinica_obj, invite.email, rol="reader")
 
     return jsonify(mensaje="cuenta creada con exito, ya puedes iniciar sesion")
