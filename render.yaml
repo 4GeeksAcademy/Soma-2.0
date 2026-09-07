@@ -2,7 +2,14 @@
 services:
   - type: web # valid values: https://render.com/docs/yaml-spec#type
     region: ohio
-    name: soma
+    # "sample-service-name" y no "soma" a proposito: el servicio ya se creo en
+    # Render con ese nombre placeholder (primer deploy hecho antes de
+    # terminar este archivo) -- Render identifica el servicio existente por
+    # este campo al sincronizar el Blueprint, asi que cambiarlo aqui crearia
+    # un servicio nuevo duplicado en vez de actualizar el que ya esta corriendo
+    # en sample-service-name-yu1j.onrender.com. Renombrar de verdad requiere
+    # hacerlo desde el dashboard de Render, no solo aqui.
+    name: sample-service-name
     env: python # valid values: https://render.com/docs/yaml-spec#environment
     buildCommand: "./render_build.sh"
     startCommand: "gunicorn wsgi --chdir ./src/"
@@ -28,14 +35,22 @@ services:
           name: soma-db
           property: connectionString
       - key: FRONTEND_URL # mismo dominio: el backend sirve el front compilado desde /dist
-        value: https://soma.onrender.com
+        value: https://sample-service-name-yu1j.onrender.com
       - key: VITE_BACKEND_URL # variable de build de Vite, no se puede cambiar sin rebuild
-        value: https://soma.onrender.com
+        value: https://sample-service-name-yu1j.onrender.com
       - key: GOOGLE_REDIRECT_URI
-        value: https://soma.onrender.com/api/auth/google/callback
+        value: https://sample-service-name-yu1j.onrender.com/api/auth/google/callback
       - key: GOOGLE_CLIENT_ID
         sync: false # pendiente: crear credenciales OAuth en Google Cloud Console
       - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # Login con Google (issue #69) -- Client ID separado a proposito del de
+      # Calendar de arriba. Mismo valor en las dos variables de abajo (el
+      # mismo Client ID que GOOGLE_CLIENT_ID, si se reusa una sola credencial
+      # de Google Cloud para las dos cosas -- ver .env.example).
+      - key: GOOGLE_AUTH_CLIENT_ID
+        sync: false
+      - key: VITE_GOOGLE_AUTH_CLIENT_ID
         sync: false
       - key: MAIL_SERVER
         value: smtp.gmail.com
