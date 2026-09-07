@@ -25,12 +25,13 @@
 	.glass-ink {
 		@apply bg-ink/45 backdrop-blur-glass border border-white/20 text-paper;
 	}
-	/* Fondo cálido tipo fotografía (gradiente, no imagen real) para hero e imágenes de producto */
+	/* Foto real del hero (background-image inline en Landing.jsx) -- el ::after
+	   de abajo le da un degradado oscuro encima para que el texto/badges que
+	   flotan sobre la foto sigan siendo legibles. background-color es solo el
+	   fallback mientras la imagen carga. */
 	.landing-hero-photo {
 		position: relative;
-		background:
-			radial-gradient(130% 90% at 90% 4%, rgba(255, 255, 255, 0.4), transparent 55%),
-			linear-gradient(150deg, #f1e4d5 0%, #e4cdae 32%, #c79e77 64%, #86583a 100%);
+		background-color: #c79e77;
 	}
 	.landing-hero-photo::after {
 		content: "";
