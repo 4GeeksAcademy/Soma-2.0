@@ -335,9 +335,7 @@ def _enviar_email_reset(usuario, token):
         )
         mail.send(mensaje)
     except Exception as error:
-        print(
-            f"[auth] no se pudo enviar el email de reset a {
-                usuario.email}: {error}")
+        print(f"[auth] no se pudo enviar el email de reset a {usuario.email}: {error}")
 
 
 @auth.route("/reset-password/solicitar", methods=["POST"])
