@@ -13,6 +13,7 @@ export const Sidebar = () => {
 	const rol = store.usuario?.rol;
 	const esStaffOperativo = ["admin", "asistente"].includes(rol);
 	const esAdmin = rol === "admin";
+	const esEspecialista = rol === "especialista";
 
 	return (
 		<aside className="sticky top-16 flex h-[calc(100vh-4rem)] w-60 shrink-0 flex-col overflow-y-auto border-r border-ink/[0.08] bg-paper print:hidden">
@@ -21,6 +22,11 @@ export const Sidebar = () => {
 				{esAdmin ? (
 					<NavLink to="/app/dashboard" className={linkClass}>
 						Dashboard
+					</NavLink>
+				) : null}
+				{esEspecialista ? (
+					<NavLink to="/app/mis-citas" className={linkClass}>
+						Mis Citas y Comisiones
 					</NavLink>
 				) : null}
 				<NavLink to="/app/agenda" className={linkClass}>

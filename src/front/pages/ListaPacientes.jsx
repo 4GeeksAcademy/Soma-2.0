@@ -93,9 +93,12 @@ export const ListaPacientes = () => {
 										<td className="p-4 border-b border-nude text-ink-soft">{paciente.cedula}</td>
 										<td className="p-4 border-b border-nude text-ink-soft">{paciente.telefono}</td>
 										<td className="p-4 border-b border-nude">
-											<button className="text-cafe hover:text-cafe-soft font-body text-sm underline cursor-pointer">
+											<Link
+												to={`/app/pacientes/${paciente.id}`}
+												className="text-cafe hover:text-cafe-soft font-body text-sm underline cursor-pointer"
+											>
 												Ver Ficha
-											</button>
+											</Link>
 										</td>
 									</tr>
 								))
