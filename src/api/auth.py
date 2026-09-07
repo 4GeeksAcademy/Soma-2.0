@@ -53,6 +53,15 @@ def login():
     # el Usuario encontrado ya trae su propio clinica_id.
     usuario = Usuario.query.filter_by(email=email).first()
 
+    # DEBUG TEMPORAL -- quitar despues de diagnosticar login en produccion.
+    print(
+        f"[login-debug] db={db.engine.url.database} email_in={email!r} "
+        f"usuario_encontrado={bool(usuario)} "
+        f"activo={usuario.activo if usuario else None} "
+        f"check_password={usuario.check_password(password) if usuario else None}",
+        flush=True,
+    )
+
     if usuario and usuario.activo and usuario.check_password(password):
         clinica = Clinica.query.get(usuario.clinica_id)
 
