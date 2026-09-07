@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import heroPhoto from "../assets/img/hero-spa.jpg";
 
 // Copy y estructura definidos junto con Jorge — ver docs/identidad-visual.md.
 // Storytelling: "un día en Soma" en vez de una lista de features (sizzle, no steak).
@@ -186,7 +187,10 @@ export const Landing = () => {
 						</div>
 					</div>
 
-					<div className="landing-hero-photo relative aspect-[4/5] overflow-hidden rounded-xl shadow-glass">
+					<div
+						className="landing-hero-photo relative aspect-[4/5] overflow-hidden rounded-xl bg-cover bg-center shadow-glass"
+						style={{ backgroundImage: `url(${heroPhoto})` }}
+					>
 						<div className="absolute left-5 right-5 top-5 z-[2] flex flex-wrap gap-2">
 							<span className="glass-ink inline-flex items-center gap-1.5 rounded-full px-[13px] py-[7px] text-xs font-semibold">
 								Ritual facial 90&#8217;

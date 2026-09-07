@@ -7,6 +7,7 @@ import {
 	loginGoogle as loginGoogleRequest,
 	cambiarPassword as cambiarPasswordRequest
 } from "../services/auth";
+import { urlConectarGoogleCalendar } from "../services/clinica";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
 
 export const Login = () => {
@@ -30,15 +31,30 @@ export const Login = () => {
 		setError("");
 		setCargando(true);
 		try {
-			const { access_token, usuario, tipo } = await loginGoogleRequest(credential);
+			const { access_token, usuario, clinica, tipo } = await loginGoogleRequest(credential);
 			dispatch({ type: "set_auth", payload: { token: access_token, usuario, tipo } });
 
-			// Si es paciente lo llevamos a su portal, si es staff a /app (o su destino previo)
+			// Si es cliente lo llevamos a su portal (mismo destino que el login por password).
 			if (tipo === "paciente") {
-				navigate("/portal-paciente", { replace: true });
-			} else {
-				navigate(destino, { replace: true });
+				navigate("/app/cliente", { replace: true });
+				return;
 			}
+
+			// Primer login de un Admin sin Calendar conectado: lo mandamos a
+			// autorizar de una vez (issue #69) en vez de que tenga que descubrir
+			// por su cuenta que existe /app/perfil.
+			if (usuario.rol === "admin" && clinica && !clinica.google_calendar_conectado) {
+				try {
+					const { url } = await urlConectarGoogleCalendar(access_token);
+					window.location.href = url;
+					return;
+				} catch {
+					// Si falla obtener la url de conexion no bloqueamos el login,
+					// sigue a la app y puede conectar despues desde Perfil.
+				}
+			}
+
+			navigate(destino, { replace: true });
 		} catch (err) {
 			setError(err.message);
 		} finally {
@@ -133,19 +149,15 @@ export const Login = () => {
 					<button
 						type="submit"
 						disabled={cargando}
-						className="w-full rounded-full bg-ink py-3.5 text-[15px] font-bold text-paper hover:bg-cafe
+						className="w-full rounded-full bg-ink py-2.5 text-[15px] font-bold text-paper hover:bg-cafe
 disabled:opacity-60"
 					>
 						{cargando ? "Ingresando…" : "Iniciar sesión"}
 					</button>
 
-					<div className="my-5 flex items-center">
-						<div className="flex-grow border-t border-beige" />
-						<span className="mx-3 text-[12px] font-medium uppercase tracking-wider text-ink-soft">o continúa con</span>
-						<div className="flex-grow border-t border-beige" />
+					<div className="mt-3">
+						<GoogleLoginButton onSuccess={handleGoogleSuccess} onError={(msg) => setError(msg)} disabled={cargando} />
 					</div>
-
-					<GoogleLoginButton onSuccess={handleGoogleSuccess} onError={(msg) => setError(msg)} disabled={cargando} />
 				</form>
 			) : (
 				<form onSubmit={handleCambiarPassword}>

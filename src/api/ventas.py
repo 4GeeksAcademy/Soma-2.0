@@ -3,8 +3,8 @@ from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from api.decorators import clinica_id_actual, rol_requerido
 from api.models import (
-    db, Venta, Pago, Paciente, Servicio, Cita,
-    PaquetePaciente, FormaPagoPaquete, Clinica, Paquete
+    db, Venta, VentaItem, Pago, Paciente, Servicio, Cita,
+    PaquetePaciente, FormaPagoPaquete, Clinica
 )
 
 ventas = Blueprint("ventas", __name__, url_prefix="/api/ventas")
@@ -53,30 +53,79 @@ def obtener_recibo_venta(venta_id):
     clinica = Clinica.query.get(clinica_id)
     paciente = Paciente.query.get(venta.paciente_id)
 
-    concepto = None
-    if venta.servicio_id:
-        servicio = Servicio.query.get(venta.servicio_id)
-        concepto = servicio.nombre if servicio else None
-    elif venta.paquete_paciente_id:
-        paquete_pac = PaquetePaciente.query.get(venta.paquete_paciente_id)
-        paquete = Paquete.query.get(paquete_pac.paquete_id) if paquete_pac and paquete_pac.paquete_id else None
-        concepto = paquete.nombre if paquete else None
+    # Un renglon por item de la cuenta -- reemplaza al "concepto" unico de
+    # cuando Venta solo podia tener un servicio o un paquete.
+    def _nombre_item(item):
+        if item.servicio:
+            return item.servicio.nombre
+        if item.paquete_paciente and item.paquete_paciente.paquete:
+            return item.paquete_paciente.paquete.nombre
+        return "Servicio"
+
+    conceptos = [
+        {"nombre": _nombre_item(item), "monto": item.monto}
+        for item in venta.items
+    ]
 
     return jsonify({
         "venta": venta.serialize(),
-        "concepto": concepto or "Servicio",
+        "conceptos": conceptos,
         "clinica_nombre": clinica.nombre if clinica else None,
         "paciente_nombre": paciente.nombre_completo if paciente else f"Paciente #{venta.paciente_id}",
         "paciente_telefono": paciente.telefono if paciente else None,
     }), 200
 
 
+def _resolver_item(item_data, clinica_id):
+    """Valida un renglon del carrito y devuelve (servicio_id, paquete_paciente_id, monto)
+    o (None, None, mensaje_de_error)."""
+    if not isinstance(item_data, dict):
+        return None, None, "cada item debe ser un objeto"
+
+    servicio_id = item_data.get("servicio_id")
+    paquete_paciente_id = item_data.get("paquete_paciente_id")
+
+    if bool(servicio_id) == bool(paquete_paciente_id):
+        return None, None, "cada item debe traer exactamente uno de servicio_id o paquete_paciente_id"
+
+    if servicio_id:
+        servicio = Servicio.query.filter_by(id=servicio_id, clinica_id=clinica_id).first()
+        if not servicio:
+            return None, None, f"el servicio {servicio_id} no existe en esta clinica"
+        if "monto" in item_data:
+            try:
+                monto = float(item_data.get("monto"))
+            except (TypeError, ValueError):
+                return None, None, "monto debe ser numerico"
+        else:
+            monto = servicio.precio
+        return servicio_id, None, monto
+
+    # paquete_paciente_id: sesion de un paquete ya comprado por el paciente
+    paquete_pac = PaquetePaciente.query.filter_by(id=paquete_paciente_id, clinica_id=clinica_id).first()
+    if not paquete_pac:
+        return None, None, f"el paquete_paciente {paquete_paciente_id} no existe en esta clinica"
+
+    if paquete_pac.forma_pago == FormaPagoPaquete.CONTADO:
+        # Ya se cobro completo al comprar el paquete -- cada sesion cuesta $0.
+        monto = 0.0
+    else:
+        # A plazos: el monto es la cuota que se cobra en esta sesion.
+        if "monto" not in item_data:
+            return None, None, "monto es requerido para una sesion de paquete a plazos"
+        try:
+            monto = float(item_data.get("monto"))
+        except (TypeError, ValueError):
+            return None, None, "monto debe ser numerico"
+
+    return None, paquete_paciente_id, monto
+
+
 @ventas.route("", methods=["POST"])
 @rol_requerido("admin", "asistente")
-# Registra una venta con pago completo o abono parcial.
-# Si es sesión de paquete de contado: monto es $0.
-# Si es sesión de paquete a plazos: permite registrar la cuota.
-# Si es servicio suelto: permite pago total o abono parcial.
+# Registra una "cuenta" (Venta) con uno o varios items (servicios sueltos y/o
+# sesiones de paquete), tipo cuenta de restaurante: un solo monto_total
+# combinado y un solo saldo pendiente, pagable en abonos contra el total.
 def registrar_venta():
     data = request.get_json(silent=True) or {}
     clinica_id = clinica_id_actual()
@@ -90,78 +139,57 @@ def registrar_venta():
         return jsonify(error="El paciente especificado no existe"), 404
 
     cita_id = data.get("cita_id")
-    servicio_id = data.get("servicio_id")
-    paquete_paciente_id = data.get("paquete_paciente_id")
-    es_sesion_paquete = data.get("es_sesion_paquete", False)
-
-    # Validar cita si viene en el payload
     if cita_id and not Cita.query.filter_by(id=cita_id, clinica_id=clinica_id).first():
         return jsonify(error="La cita especificada no existe"), 404
 
-    # Validar servicio si viene en el payload
-    if servicio_id and not Servicio.query.filter_by(id=servicio_id, clinica_id=clinica_id).first():
-        return jsonify(error="El servicio especificado no existe"), 404
+    items_data = data.get("items")
+    if not isinstance(items_data, list) or len(items_data) == 0:
+        return jsonify(error="items es requerido y debe tener al menos un elemento"), 400
 
-    # 1. Determinar monto total y pago según tipo de venta
-    if es_sesion_paquete or paquete_paciente_id:
-        paquete_pac = (
-            PaquetePaciente.query.filter_by(id=paquete_paciente_id, clinica_id=clinica_id).first()
-            if paquete_paciente_id
-            else None
-        )
+    items_resueltos = []
+    for item_data in items_data:
+        servicio_id, paquete_paciente_id, resultado = _resolver_item(item_data, clinica_id)
+        if servicio_id is None and paquete_paciente_id is None:
+            return jsonify(error=resultado), 400
+        items_resueltos.append((servicio_id, paquete_paciente_id, resultado))
 
-        pago_cuota = float(data.get("pago_monto", 0.0) or 0.0)
-
-        # Si el paquete fue de contado, la sesión individual cuesta $0
-        if paquete_pac and paquete_pac.forma_pago == FormaPagoPaquete.CONTADO:
-            monto_total = 0.0
-            pago_monto = 0.0
-        else:
-            # Paquete a plazos: se registra la cuota que el paciente paga en la sesión
-            monto_total = float(data.get("monto_total", pago_cuota) or 0.0)
-            pago_monto = pago_cuota
-    else:
-        # Venta regular de servicio suelto
-        if "monto_total" not in data:
-            if servicio_id:
-                serv = Servicio.query.filter_by(id=servicio_id, clinica_id=clinica_id).first()
-                monto_total = serv.precio if serv else 0.0
-            else:
-                return jsonify(error="monto_total es requerido para servicios sueltos"), 400
-        else:
-            try:
-                monto_total = float(data.get("monto_total", 0.0))
-            except (TypeError, ValueError):
-                return jsonify(error="monto_total debe ser numérico"), 400
-
-        try:
-            pago_monto = float(data.get("pago_monto", 0.0) or 0.0)
-        except (TypeError, ValueError):
-            return jsonify(error="pago_monto debe ser numérico"), 400
-
+    monto_total = sum(monto for _, _, monto in items_resueltos)
     if monto_total < 0:
         return jsonify(error="El monto total no puede ser negativo"), 400
+
+    try:
+        pago_monto = float(data.get("pago_monto", 0.0) or 0.0)
+    except (TypeError, ValueError):
+        return jsonify(error="pago_monto debe ser numérico"), 400
 
     if pago_monto < 0:
         return jsonify(error="El monto del pago no puede ser negativo"), 400
 
     if pago_monto > monto_total:
-        return jsonify(error="El pago no puede exceder el monto total de la venta"), 400
+        return jsonify(error="El pago no puede exceder el monto total de la cuenta"), 400
 
-    # 2. Crear la Venta
+    # 1. Crear la Venta (la cuenta)
     nueva_venta = Venta(
         clinica_id=clinica_id,
         paciente_id=paciente_id,
         cita_id=cita_id,
-        servicio_id=servicio_id,
-        paquete_paciente_id=paquete_paciente_id,
         monto_total=round(monto_total, 2),
         fecha=datetime.utcnow()
     )
     db.session.add(nueva_venta)
     db.session.flush()
 
-    # 3. Registrar el Pago inicial si aplica
+    # 2. Crear un VentaItem por cada renglon del carrito
+    for servicio_id, paquete_paciente_id, monto in items_resueltos:
+        db.session.add(VentaItem(
+            clinica_id=clinica_id,
+            venta_id=nueva_venta.id,
+            servicio_id=servicio_id,
+            paquete_paciente_id=paquete_paciente_id,
+            monto=round(monto, 2),
+        ))
+
+    # 3. Registrar el Pago inicial (contra el total combinado) si aplica
     if pago_monto > 0:
         metodo_pago = data.get("pago_metodo", "efectivo")
         if metodo_pago not in ("efectivo", "tarjeta", "transferencia"):

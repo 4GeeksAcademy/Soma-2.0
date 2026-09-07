@@ -17,7 +17,10 @@ depends_on = None
 
 
 def upgrade():
-    # Create the new table first.
+    # La FK hacia cita va inline en el create_table (no en un
+    # op.create_foreign_key aparte despues) -- SQLite no soporta "ALTER TABLE
+    # ADD CONSTRAINT" fuera de batch mode, y esta tabla es nueva en esta misma
+    # migracion, asi que no hace falta ALTER para nada de lo suyo.
     op.create_table(
         "paquete_paciente_sesion",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -41,16 +44,12 @@ def upgrade():
             ["servicio_id"],
             ["servicio.id"],
         ),
+        sa.ForeignKeyConstraint(
+            ["cita_id"],
+            ["cita.id"],
+            name="fk_paquete_paciente_sesion_cita_id",
+        ),
         sa.PrimaryKeyConstraint("id"),
-    )
-
-    # Add the FK from paquete_paciente_sesion to cita.
-    op.create_foreign_key(
-        "fk_paquete_paciente_sesion_cita_id",
-        "paquete_paciente_sesion",
-        "cita",
-        ["cita_id"],
-        ["id"],
     )
 
     # Add the FK from cita to paquete_paciente_sesion.
@@ -71,14 +70,9 @@ def downgrade():
             type_="foreignkey",
         )
 
-    # Remove the FK from paquete_paciente_sesion to cita.
-    op.drop_constraint(
-        "fk_paquete_paciente_sesion_cita_id",
-        "paquete_paciente_sesion",
-        type_="foreignkey",
-    )
-
-    # Finally remove the table.
+    # Borrar la tabla completa ya se lleva entre las manos la FK hacia cita
+    # (estaba inline en su create_table) -- no hace falta un drop_constraint
+    # aparte, que es justo el que no funciona fuera de batch mode en SQLite.
     op.drop_table("paquete_paciente_sesion")
 
     # Postgres no borra el tipo ENUM al borrar la tabla, hay que hacerlo

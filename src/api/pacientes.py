@@ -2,7 +2,9 @@ from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 
 from api.decorators import clinica_id_actual, rol_requerido
-from api.models import Paciente, db
+from api.models import (
+    Cita, HistorialClinico, Paciente, PaquetePaciente, PaquetePacienteSesion, Venta, db
+)
 
 pacientes = Blueprint("pacientes", __name__, url_prefix="/api/pacientes")
 CORS(pacientes)
@@ -26,9 +28,65 @@ def listar_pacientes():
 
 @pacientes.route("/<int:paciente_id>", methods=["GET"])
 @rol_requerido("admin", "asistente", "especialista")
+# La ficha del paciente (Ver Ficha en el directorio) necesita mas que los
+# datos personales -- se arma todo aqui en una sola llamada (citas, historial
+# clinico, paquetes con sus sesiones, y ventas/saldo) en vez de que el
+# frontend tenga que pegarle a 4 endpoints distintos y cruzarlos el solo.
 def obtener_paciente(paciente_id):
-    paciente = Paciente.query.filter_by(id=paciente_id, clinica_id=clinica_id_actual()).first_or_404()
-    return jsonify(paciente.serialize())
+    clinica_id = clinica_id_actual()
+    paciente = Paciente.query.filter_by(id=paciente_id, clinica_id=clinica_id).first_or_404()
+
+    citas = (
+        Cita.query.filter_by(paciente_id=paciente_id, clinica_id=clinica_id)
+        .order_by(Cita.fecha_hora.desc())
+        .all()
+    )
+    citas_serializadas = []
+    for cita in citas:
+        c = cita.serialize()
+        c["especialista_nombre"] = cita.especialista.nombre if cita.especialista else None
+        c["espacio_nombre"] = cita.espacio.nombre if cita.espacio else None
+        c["servicio_nombre"] = cita.servicio.nombre if cita.servicio else None
+        citas_serializadas.append(c)
+
+    historial = (
+        HistorialClinico.query.filter_by(paciente_id=paciente_id, clinica_id=clinica_id)
+        .order_by(HistorialClinico.id.desc())
+        .all()
+    )
+    historial_serializado = []
+    for registro in historial:
+        h = registro.serialize()
+        cita_de_registro = next((c for c in citas if c.id == registro.cita_id), None)
+        h["cita_fecha"] = cita_de_registro.fecha_hora.isoformat() if cita_de_registro else None
+        historial_serializado.append(h)
+
+    paquetes_paciente = PaquetePaciente.query.filter_by(paciente_id=paciente_id, clinica_id=clinica_id).all()
+    paquetes_serializados = []
+    for pp in paquetes_paciente:
+        sesiones = PaquetePacienteSesion.query.filter_by(paquete_paciente_id=pp.id).all()
+        paquetes_serializados.append({
+            **pp.serialize(),
+            "paquete_nombre": pp.paquete.nombre if pp.paquete else None,
+            "sesiones": [
+                {**s.serialize(), "servicio_nombre": s.servicio.nombre if s.servicio else None}
+                for s in sesiones
+            ],
+        })
+
+    ventas = (
+        Venta.query.filter_by(paciente_id=paciente_id, clinica_id=clinica_id)
+        .order_by(Venta.fecha.desc())
+        .all()
+    )
+
+    return jsonify({
+        **paciente.serialize(),
+        "citas": citas_serializadas,
+        "historial_clinico": historial_serializado,
+        "paquetes": paquetes_serializados,
+        "ventas": [v.serialize() for v in ventas],
+    })
 
 
 @pacientes.route("", methods=["POST"])
