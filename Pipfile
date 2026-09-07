@@ -27,6 +27,11 @@ google-api-python-client = "*"
 google-auth-httplib2 = "*"
 flask-mail = "*"
 flask-cors = "*"
+# Dependencia transitiva de alembic para Python <3.11 (usa tomllib de la
+# stdlib en 3.11+, y cae a este paquete si no esta) -- explicita aca porque
+# Pipfile.lock se genera en local (Python 3.13, no lo necesita) pero Render
+# corre Python 3.10.6 (PYTHON_VERSION en render.yaml), donde si hace falta.
+tomli = "*"
 
 [requires]
 # python_version = "3.14"
