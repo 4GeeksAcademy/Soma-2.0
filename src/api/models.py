@@ -27,6 +27,12 @@ class Clinica(db.Model):
         String(500), nullable=True)
     google_cuenta_email: Mapped[str | None] = mapped_column(
         String(150), nullable=True)
+    # Calendario dedicado (no "primary") creado dentro de la cuenta de Google
+    # del Admin al conectar -- se comparte de solo lectura con asistentes y
+    # especialistas de la clinica (issue #69). Nulo hasta la primera conexion
+    # exitosa, o si la conexion se hizo antes de que esto existiera.
+    google_calendar_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True)
 
     def serialize(self):
         return {
@@ -475,8 +481,10 @@ class PaquetePacienteSesion(db.Model):
 
 
 # Tabla/entidad venta
-# Transacción realizada a un paciente con cálculo automático
-# de abonos y deuda
+# "Cuenta" de una visita: puede agrupar varios servicios/paquetes (issue de
+# ventas acumulativas, tipo cuenta de restaurante) bajo un solo monto_total y
+# un solo saldo pendiente -- el detalle de que se vendio vive en VentaItem,
+# los abonos (Pago) se siguen aplicando contra la Venta completa, no por item.
 
 class Venta(db.Model):
     __tablename__ = "venta"
@@ -487,13 +495,14 @@ class Venta(db.Model):
     paciente_id: Mapped[int] = mapped_column(Integer, nullable=False)
     cita_id: Mapped[int | None] = mapped_column(
         ForeignKey("cita.id"), nullable=True)
-    servicio_id: Mapped[int | None] = mapped_column(
-        ForeignKey("servicio.id"), nullable=True)
-    paquete_paciente_id: Mapped[int | None] = mapped_column(
-        ForeignKey("paquete_paciente.id"), nullable=True)
     monto_total: Mapped[float] = mapped_column(Float, nullable=False)
     fecha: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False)
+
+    items: Mapped[list["VentaItem"]] = relationship(
+        back_populates="venta",
+        cascade="all, delete-orphan"
+    )
 
     pagos: Mapped[list["Pago"]] = relationship(
         back_populates="venta",
@@ -514,13 +523,50 @@ class Venta(db.Model):
             "id": self.id,
             "paciente_id": self.paciente_id,
             "cita_id": self.cita_id,
-            "servicio_id": self.servicio_id,
-            "paquete_paciente_id": self.paquete_paciente_id,
+            "items": [item.serialize() for item in self.items],
             "monto_total": self.monto_total,
             "monto_abonado": self.monto_abonado,
             "deuda_pendiente": self.deuda_pendiente,
             "fecha": self.fecha.isoformat(),
             "pagos": [pago.serialize() for pago in self.pagos],
+        }
+
+
+# Tabla/entidad venta_item
+# Un renglon de la cuenta: un servicio suelto o una sesion de paquete, con su
+# propio monto -- la suma de sus montos es Venta.monto_total.
+
+class VentaItem(db.Model):
+    __tablename__ = "venta_item"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    clinica_id: Mapped[int] = mapped_column(
+        ForeignKey("clinica.id"), nullable=False)
+    venta_id: Mapped[int] = mapped_column(
+        ForeignKey("venta.id"), nullable=False)
+    servicio_id: Mapped[int | None] = mapped_column(
+        ForeignKey("servicio.id"), nullable=True)
+    paquete_paciente_id: Mapped[int | None] = mapped_column(
+        ForeignKey("paquete_paciente.id"), nullable=True)
+    monto: Mapped[float] = mapped_column(Float, nullable=False)
+
+    venta: Mapped["Venta"] = relationship(back_populates="items")
+    servicio: Mapped["Servicio | None"] = relationship()
+    paquete_paciente: Mapped["PaquetePaciente | None"] = relationship()
+
+    def serialize(self):
+        paquete_nombre = None
+        if self.paquete_paciente and self.paquete_paciente.paquete:
+            paquete_nombre = self.paquete_paciente.paquete.nombre
+
+        return {
+            "id": self.id,
+            "venta_id": self.venta_id,
+            "servicio_id": self.servicio_id,
+            "servicio_nombre": self.servicio.nombre if self.servicio else None,
+            "paquete_paciente_id": self.paquete_paciente_id,
+            "paquete_nombre": paquete_nombre,
+            "monto": self.monto,
         }
 
 

@@ -26,7 +26,6 @@ def verificar_token_google(token: str) -> dict:
     """Valida la firma y audiencia del ID Token de Google y retorna el payload decodificado.
 
     Lanza ValueError si el token es inválido o expiró, o RuntimeError si falta la configuración.
-    Exportada para ser reutilizada por otros módulos como la redención de invitaciones (#68).
     """
     client_id = os.environ.get("GOOGLE_AUTH_CLIENT_ID")
     if not client_id:
@@ -135,6 +134,14 @@ def login_google():
         return jsonify(
             error="El token de Google no contiene un correo verificado"), 400
 
+    # Google puede emitir un ID Token para un correo que su dueño no ha
+    # verificado todavia -- sin este check, cualquiera con acceso a esa
+    # cuenta de Google (sin ser el dueno confirmado del correo) podria
+    # entrar como el Usuario/Paciente que ya tiene ese email registrado.
+    if not idinfo.get("email_verified"):
+        return jsonify(
+            error="El correo de esta cuenta de Google no está verificado"), 401
+
     # 2. Caso A: Si coincide con un Usuario.email (Staff: admin, asistente,
     # especialista)
     usuario = Usuario.query.filter_by(email=email).first()
@@ -145,57 +152,72 @@ def login_google():
 
         # Si aún no tenía vinculado el google_id, vincularlo ahora
         google_id = idinfo.get("sub")
-        if google_id and hasattr(
-                usuario, "google_id") and not usuario.google_id:
+        if google_id and not usuario.google_id:
             usuario.google_id = google_id
             db.session.commit()
 
-        claims = {
-            "rol": usuario.rol.value,
-            "nombre": usuario.nombre,
-            "tipo": "staff",
-        }
-        if hasattr(usuario, "clinica_id"):
-            claims["clinica_id"] = usuario.clinica_id
+        clinica = Clinica.query.get(usuario.clinica_id)
 
         access_token = create_access_token(
             identity=str(usuario.id),
-            additional_claims=claims,
+            additional_claims={
+                "rol": usuario.rol.value,
+                "nombre": usuario.nombre,
+                "clinica_id": usuario.clinica_id,
+                "tipo": "staff",
+            },
             expires_delta=timedelta(hours=8),
         )
         return jsonify(
             access_token=access_token,
             usuario=usuario.serialize(),
-            tipo="staff"
+            clinica=clinica.serialize(),
+            tipo="staff",
         ), 200
 
     # 3. Caso B: Si coincide con un Paciente.email (Clientes / Portal de
-    # paciente)
+    # paciente). Mismo shape de claims/usuario que el login por password
+    # (ver arriba) -- "rol": "cliente" es lo que checan decorators.py,
+    # portal.py y el frontend (ProtectedRoute/AppIndexRedirect), no
+    # "paciente".
     paciente = Paciente.query.filter_by(email=email).first()
     if paciente:
+        if not paciente.activo:
+            return jsonify(
+                error="Esta cuenta de paciente se encuentra inactiva"), 403
+
         google_id = idinfo.get("sub")
-        if google_id and hasattr(
-                paciente, "google_id") and not paciente.google_id:
+        if google_id and not paciente.google_id:
             paciente.google_id = google_id
             db.session.commit()
 
-        claims = {
-            "rol": "paciente",
-            "tipo": "paciente",
+        clinica = Clinica.query.get(paciente.clinica_id)
+
+        usuario_cliente = {
+            **paciente.serialize(),
+            "id": paciente.id,
             "nombre": paciente.nombre_completo,
+            "rol": "cliente",
+            "paciente_id": paciente.id,
+            "clinica_id": paciente.clinica_id,
+            "debe_cambiar_password": False,
         }
-        if hasattr(paciente, "clinica_id"):
-            claims["clinica_id"] = paciente.clinica_id
 
         access_token = create_access_token(
             identity=str(paciente.id),
-            additional_claims=claims,
+            additional_claims={
+                "rol": "cliente",
+                "nombre": paciente.nombre_completo,
+                "paciente_id": paciente.id,
+                "clinica_id": paciente.clinica_id,
+            },
             expires_delta=timedelta(hours=8),
         )
         return jsonify(
             access_token=access_token,
-            usuario=paciente.serialize(),
-            tipo="paciente"
+            usuario=usuario_cliente,
+            clinica=clinica.serialize(),
+            tipo="paciente",
         ), 200
 
     # 4. Caso C: No coincide con nada -> 404 (No hay auto-registro público)
@@ -225,20 +247,25 @@ def google_calendar_callback():
     state = request.args.get("state")
 
     if not code or not state:
+        print(f"[auth] callback de Google Calendar sin code/state: code={bool(code)} state={bool(state)}")
         return redirect(f"{destino}?google_calendar=error")
 
     try:
         claims = decode_token(state)
-    except Exception:
+    except Exception as error:
+        print(f"[auth] no se pudo decodificar el state del callback: {error}")
         return redirect(f"{destino}?google_calendar=error")
 
     if claims.get("rol") != "admin":
+        print(f"[auth] callback de Google Calendar con rol no admin: {claims.get('rol')}")
         return redirect(f"{destino}?google_calendar=error")
 
     clinica_actual = Clinica.query.get(claims.get("clinica_id"))
     redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI")
 
     if not clinica_actual or not redirect_uri:
+        print(
+            f"[auth] callback de Google Calendar sin clinica ({clinica_actual}) o redirect_uri ({bool(redirect_uri)})")
         return redirect(f"{destino}?google_calendar=error")
 
     try:
@@ -250,11 +277,22 @@ def google_calendar_callback():
         return redirect(f"{destino}?google_calendar=error")
 
     if not refresh_token:
+        print(
+            f"[auth] Google no devolvio refresh_token en el intercambio (email={email})")
         return redirect(f"{destino}?google_calendar=error")
 
     clinica_actual.google_refresh_token = refresh_token
     clinica_actual.google_cuenta_email = email
     db.session.commit()
+
+    # Calendario dedicado (no "primary") -- se crea solo la primera vez que se
+    # conecta. Si ya existia (reconexion), no se toca ni se vuelve a compartir.
+    if not clinica_actual.google_calendar_id:
+        calendario_id = google_calendar.crear_calendario_dedicado(clinica_actual)
+        if calendario_id:
+            clinica_actual.google_calendar_id = calendario_id
+            db.session.commit()
+            google_calendar.compartir_calendario_con_staff(clinica_actual)
 
     return redirect(f"{destino}?google_calendar=conectado")
 
